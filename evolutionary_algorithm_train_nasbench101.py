@@ -3,7 +3,7 @@ import os
 import copy
 import time
 
-from nasbench101_utils_dnc import EXP_REPEAT_TIMES, POPULATION_SIZE, MAX_CONNECTIONS, NUM_GEN
+from nasbench101_utils_dnc import EXP_REPEAT_TIMES, POPULATION_SIZE, MAX_CONNECTIONS, NUM_GEN, T
 from nasbench101_utils_dnc import randomly_sample_architecture, create_nord_architecture, tournament_selection, bitwise_mutation
 
 
@@ -38,7 +38,7 @@ def evolutionary_algorithm():
         population = copy.deepcopy(total_population)
 
         # evolutionary algorithm
-        for epoch in range(NUM_GEN*EXP_REPEAT_TIMES):
+        for epoch in range(NUM_GEN*T):
             tic = time.time()
             new_population = []
             for i in range(POPULATION_SIZE):

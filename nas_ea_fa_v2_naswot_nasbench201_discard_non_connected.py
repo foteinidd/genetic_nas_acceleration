@@ -7,7 +7,7 @@ import copy
 from contextlib import redirect_stdout
 import time
 
-from nasbench201_utils_dnc import EXP_REPEAT_TIMES, MAX_TIME_BUDGET, POPULATION_SIZE, NUM_GEN, K, H
+from nasbench201_utils_dnc import EXP_REPEAT_TIMES, MAX_TIME_BUDGET, POPULATION_SIZE, NUM_GEN, T, K, H
 from nasbench201_utils_dnc import randomly_sample_architecture, create_nord_architecture, \
     get_all_isomorphic_sequences, get_min_distance, get_model_sequences, tournament_selection, bitwise_mutation
 
@@ -88,7 +88,7 @@ def NAS_EA_FA_V2():
 
         t = 0  # iteration count
         # while current_time_budget <= MAX_TIME_BUDGET:
-        while t < 10:
+        while t < T:
             tic = time.time()
             t += 1
             # sort in descending order by fitness
