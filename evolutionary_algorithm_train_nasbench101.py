@@ -38,7 +38,7 @@ def evolutionary_algorithm():
         population = copy.deepcopy(total_population)
 
         # evolutionary algorithm
-        for epoch in range(NUM_GEN):
+        for epoch in range(NUM_GEN*EXP_REPEAT_TIMES):
             tic = time.time()
             new_population = []
             for i in range(POPULATION_SIZE):

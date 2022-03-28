@@ -133,7 +133,7 @@ def evolutionary_algorithm_naswot():
                         best_test_acc_absolute.append(best_test_acc_absolute[-1])
                 else:
                     best_test_acc_absolute.append(test_acc)
-                
+
                 if best_score_absolute != []:
                     if score > best_score_absolute[-1]:
                         best_score_absolute.append(score)
