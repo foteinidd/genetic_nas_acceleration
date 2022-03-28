@@ -52,6 +52,12 @@ def evolutionary_algorithm_naswot():
         total_train_time = []
         total_naswot_calc_time = []
 
+        best_score_absolute = []
+        best_val_acc_based_on_fitness = []
+        best_test_acc_based_on_fitness = []
+
+        best_test_acc_absolute = []
+
         # Randomly sample POPULATION_SIZE architectures with an initial fitness of 0
         total_population = []
         for _ in range(POPULATION_SIZE):
@@ -66,7 +72,7 @@ def evolutionary_algorithm_naswot():
         population = copy.deepcopy(total_population)
 
         # evolutionary algorithm
-        for epoch in range(NUM_GEN):
+        for epoch in range(NUM_GEN*EXP_REPEAT_TIMES):
             num_arch = 0
             tic = time.time()
             new_population = []
@@ -119,6 +125,28 @@ def evolutionary_algorithm_naswot():
                 else:
                     total_train_time.append(train_time)
                     total_naswot_calc_time.append(calc_time)
+
+                if best_test_acc_absolute != []:
+                    if test_acc > best_test_acc_absolute[-1]:
+                        best_test_acc_absolute.append(test_acc)
+                    else:
+                        best_test_acc_absolute.append(best_test_acc_absolute[-1])
+                else:
+                    best_test_acc_absolute.append(test_acc)
+                
+                if best_score_absolute != []:
+                    if score > best_score_absolute[-1]:
+                        best_score_absolute.append(score)
+                        best_val_acc_based_on_fitness.append(val_acc)
+                        best_test_acc_based_on_fitness.append(test_acc)
+                    else:
+                        best_score_absolute.append(best_score_absolute[-1])
+                        best_val_acc_based_on_fitness.append(best_val_acc_based_on_fitness[-1])
+                        best_test_acc_based_on_fitness.append(best_test_acc_based_on_fitness[-1])
+                else:
+                    best_score_absolute.append(score)
+                    best_val_acc_based_on_fitness.append(val_acc)
+                    best_test_acc_based_on_fitness.append(test_acc)
 
             population = new_population
 
