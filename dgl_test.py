@@ -1,6 +1,7 @@
 from nasbench101_utils_dnc import randomly_sample_architecture, create_nord_architecture, MAX_CONNECTIONS
 from matplotlib import pyplot as plt
 import networkx as nx
+import dgl
 
 
 is_valid_architecture = False
@@ -13,5 +14,7 @@ print(architecture)
 d = create_nord_architecture(architecture)
 print(d)
 G = d.to_networkx()
-nx.draw(G)
-plt.show()
+# nx.draw(G)
+# plt.show()
+dgl_obj = dgl.from_networkx(G)
+print(dgl_obj)
