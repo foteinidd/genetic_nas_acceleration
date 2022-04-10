@@ -14,7 +14,7 @@ from .neural_builder import NeuralNet
 from .neural_descriptor import NeuralDescriptor
 from .neural_evaluators import (DistributedEvaluator, LocalBatchEvaluator,
                                 LocalEvaluator)
-from .naswot_evaluator import NaswotEvaluator
+from .naswt_evaluator import NASWT_Evaluator
 
 
 __all__ = ['layers',
@@ -26,5 +26,5 @@ __all__ = ['layers',
            'data_curators',
            'BenchmarkEvaluator',
            'NATSBench_Evaluator',
-           'NaswotEvaluator'
+           'NASWT_Evaluator'
            ]

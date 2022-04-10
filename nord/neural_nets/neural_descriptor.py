@@ -5,6 +5,7 @@ Created on Mon Aug  6 18:54:35 2018
 @author: George Kyriakides
          ge.kyriakides@gmail.com
 """
+import networkx as nx
 
 DEFAULT_SUFFIX = 'Layer'
 

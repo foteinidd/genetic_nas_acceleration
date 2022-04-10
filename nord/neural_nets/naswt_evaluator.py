@@ -6,7 +6,7 @@ from nord.neural_nets import NeuralDescriptor, NeuralNet
 from nord.configurations.all import Configs
 
 
-class NaswotEvaluator():
+class NASWT_Evaluator():
     """A class to load a dataset and evaluate a network based on the naswot metric
     """
 

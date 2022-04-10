@@ -1,6 +1,6 @@
 import numpy as np
 from nord.neural_nets.natsbench_evaluator import NATSBench_Evaluator
-from nord.neural_nets import NaswotEvaluator
+from nord.neural_nets import NASWT_Evaluator
 import os
 from xgboost import XGBRegressor
 import copy
@@ -18,7 +18,7 @@ from xautodl.models import get_cell_based_tiny_net
 import math
 
 
-def NAS_EA_FA_V2():
+def NAS_EA_FA_V2_naswt():
     # Initialise NATS-Bench API
     NATSBENCH_NAME = "NATS-tss-v1_0-3ffb9-simple"
     NATSBENCH_TFRECORD = DATA_ROOT + "/" + NATSBENCH_NAME
@@ -27,17 +27,17 @@ def NAS_EA_FA_V2():
 
     # Instantiate the evaluators
     natsbench_evaluator = NATSBench_Evaluator()
-    naswot_evaluator = NaswotEvaluator()
+    naswt_evaluator = NASWT_Evaluator()
 
-    # NASWOT config
+    # NASWT config
     batch_size = 128
     dataset = 'cifar10'
 
-    if not os.path.exists('results_nas_ea_fa_v2_dnc201_naswot_' + str(batch_size)):
-        os.mkdir('results_nas_ea_fa_v2_dnc201_naswot_' + str(batch_size))
+    if not os.path.exists('results_nas_ea_fa_v2_dnc201_naswt_' + str(batch_size)):
+        os.mkdir('results_nas_ea_fa_v2_dnc201_naswt_' + str(batch_size))
     for exp_repeat_index in range(EXP_REPEAT_TIMES):
         start_time = time.time()
-        folder_name = 'results_nas_ea_fa_v2_dnc201_naswot_' + str(batch_size) + '/results' + str(exp_repeat_index + 1)
+        folder_name = 'results_nas_ea_fa_v2_dnc201_naswt_' + str(batch_size) + '/results' + str(exp_repeat_index + 1)
         if not os.path.exists(folder_name):
             os.mkdir(folder_name)
 
@@ -45,9 +45,9 @@ def NAS_EA_FA_V2():
         best_val_acc = []
         best_test_acc = []
         train_times = []
-        naswot_calc_times = []
+        naswt_calc_times = []
         total_train_time = []
-        total_naswot_calc_time = []
+        total_naswt_calc_time = []
 
         best_score_absolute = []
         best_val_acc_based_on_fitness = []
@@ -118,15 +118,15 @@ def NAS_EA_FA_V2():
                 natsbench_arch_index = api.query_index_by_arch(nasnet_arch)
                 config = api.get_net_config(natsbench_arch_index, dataset+'-valid')
                 net = get_cell_based_tiny_net(config)
-                K_matrix, score, calc_time = naswot_evaluator.net_evaluate(net=net, batch_size=batch_size,
-                                                                           dataset=dataset)
-                print('topK', 'num_arch:', num_arch, 'naswot_calc_time:', calc_time, 'sec')
+                K_matrix, score, calc_time = naswt_evaluator.net_evaluate(net=net, batch_size=batch_size,
+                                                                          dataset=dataset)
+                print('topK', 'num_arch:', num_arch, 'naswt_calc_time:', calc_time, 'sec')
 
                 architecture.fitness = score
                 architecture.val_acc = val_acc
                 architecture.test_acc = test_acc
                 architecture.train_time = train_time
-                architecture.naswot_calc_time = calc_time
+                architecture.naswt_calc_time = calc_time
 
                 architecture.train_loss = train_loss
                 architecture.val_loss = val_loss
@@ -161,14 +161,14 @@ def NAS_EA_FA_V2():
                     best_test_acc.append(test_acc)
 
                 train_times.append(train_time)
-                naswot_calc_times.append(calc_time)
+                naswt_calc_times.append(calc_time)
 
                 if total_train_time != []:
                     total_train_time.append(total_train_time[-1] + train_time)
-                    total_naswot_calc_time.append(total_naswot_calc_time[-1] + calc_time)
+                    total_naswt_calc_time.append(total_naswt_calc_time[-1] + calc_time)
                 else:
                     total_train_time.append(train_time)
-                    total_naswot_calc_time.append(calc_time)
+                    total_naswt_calc_time.append(calc_time)
 
                 if best_score_absolute != []:
                     if score > best_score_absolute[-1]:
@@ -216,7 +216,7 @@ def NAS_EA_FA_V2():
                         for conn in row:
                             f.write(str(int(conn)) + ' ')
                         f.write('\n')
-                    f.write('fitness (naswot score): ')
+                    f.write('fitness (naswt score): ')
                     f.write(str(ind.fitness))
                     f.write('\n')
                     f.write('validation accuracy: ')
@@ -228,8 +228,8 @@ def NAS_EA_FA_V2():
                     f.write('train time: ')
                     f.write(str(ind.train_time))
                     f.write('\n')
-                    f.write('naswot calculation time: ')
-                    f.write(str(ind.naswot_calc_time))
+                    f.write('naswt calculation time: ')
+                    f.write(str(ind.naswt_calc_time))
                     f.write('\n')
                     f.write('train loss: ')
                     f.write(str(ind.train_loss))
@@ -288,15 +288,15 @@ def NAS_EA_FA_V2():
                 natsbench_arch_index = api.query_index_by_arch(nasnet_arch)
                 config = api.get_net_config(natsbench_arch_index, dataset+'-valid')
                 net = get_cell_based_tiny_net(config)
-                K_matrix, score, calc_time = naswot_evaluator.net_evaluate(net=net, batch_size=batch_size,
+                K_matrix, score, calc_time = naswt_evaluator.net_evaluate(net=net, batch_size=batch_size,
                                                                            dataset=dataset)
-                print('topH', 'num_arch:', num_arch, 'naswot_calc_time:', calc_time, 'sec')
+                print('topH', 'num_arch:', num_arch, 'naswt_calc_time:', calc_time, 'sec')
 
                 architecture.fitness = score
                 architecture.val_acc = val_acc
                 architecture.test_acc = test_acc
                 architecture.train_time = train_time
-                architecture.naswot_calc_time = calc_time
+                architecture.naswt_calc_time = calc_time
 
                 architecture.train_loss = train_loss
                 architecture.val_loss = val_loss
@@ -331,14 +331,14 @@ def NAS_EA_FA_V2():
                     best_test_acc.append(test_acc)
 
                 train_times.append(train_time)
-                naswot_calc_times.append(calc_time)
+                naswt_calc_times.append(calc_time)
 
                 if total_train_time != []:
                     total_train_time.append(total_train_time[-1] + train_time)
-                    total_naswot_calc_time.append(total_naswot_calc_time[-1] + calc_time)
+                    total_naswt_calc_time.append(total_naswt_calc_time[-1] + calc_time)
                 else:
                     total_train_time.append(train_time)
-                    total_naswot_calc_time.append(calc_time)
+                    total_naswt_calc_time.append(calc_time)
 
                 if best_score_absolute != []:
                     if score > best_score_absolute[-1]:
@@ -381,7 +381,7 @@ def NAS_EA_FA_V2():
                         for conn in row:
                             f.write(str(int(conn)) + ' ')
                         f.write('\n')
-                    f.write('fitness (naswot score): ')
+                    f.write('fitness (naswt score): ')
                     f.write(str(ind.fitness))
                     f.write('\n')
                     f.write('validation accuracy: ')
@@ -393,8 +393,8 @@ def NAS_EA_FA_V2():
                     f.write('train time: ')
                     f.write(str(ind.train_time))
                     f.write('\n')
-                    f.write('naswot calculation time: ')
-                    f.write(str(ind.naswot_calc_time))
+                    f.write('naswt calculation time: ')
+                    f.write(str(ind.naswt_calc_time))
                     f.write('\n')
                     f.write('train loss: ')
                     f.write(str(ind.train_loss))
@@ -470,7 +470,7 @@ def NAS_EA_FA_V2():
                             for conn in row:
                                 f.write(str(int(conn)) + ' ')
                             f.write('\n')
-                        f.write('fitness (approximate naswot score): ')
+                        f.write('fitness (approximate naswt score): ')
                         f.write(str(ind.fitness))
                         f.write('\n')
 
@@ -484,7 +484,7 @@ def NAS_EA_FA_V2():
 
         end_time = time.time()
 
-        with open(folder_name + '/best_naswot_score' + str(exp_repeat_index+1) + '.txt', 'w') as f:
+        with open(folder_name + '/best_naswt_score' + str(exp_repeat_index+1) + '.txt', 'w') as f:
             for element in best_score:
                 f.write(str(element) + '\n')
 
@@ -504,18 +504,18 @@ def NAS_EA_FA_V2():
             for element in total_train_time:
                 f.write(str(element) + '\n')
 
-        with open(folder_name + '/naswot_calc_times' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            for element in naswot_calc_times:
+        with open(folder_name + '/naswt_calc_times' + str(exp_repeat_index+1) + '.txt', 'w') as f:
+            for element in naswt_calc_times:
                 f.write(str(element) + '\n')
 
-        with open(folder_name + '/total_naswot_calc_time' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            for element in total_naswot_calc_time:
+        with open(folder_name + '/total_naswt_calc_time' + str(exp_repeat_index+1) + '.txt', 'w') as f:
+            for element in total_naswt_calc_time:
                 f.write(str(element) + '\n')
 
         with open(folder_name + '/execution_time' + str(exp_repeat_index+1) + '.txt', 'w') as f:
             f.write(str(end_time - start_time) + '\n')  # in seconds
 
-        with open(folder_name + '/best_naswot_score_absolute' + str(exp_repeat_index+1) + '.txt', 'w') as f:
+        with open(folder_name + '/best_naswt_score_absolute' + str(exp_repeat_index+1) + '.txt', 'w') as f:
             for element in best_score_absolute:
                 f.write(str(element) + '\n')
 
@@ -529,4 +529,4 @@ def NAS_EA_FA_V2():
 
 
 if __name__ == '__main__':
-    NAS_EA_FA_V2()
+    NAS_EA_FA_V2_naswt()
