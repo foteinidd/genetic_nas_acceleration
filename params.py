@@ -1,0 +1,7 @@
+MAX_TIME_BUDGET = 6000000
+POPULATION_SIZE = 100
+NUM_GEN = 10  # G
+K = 30
+H = 20
+EXP_REPEAT_TIMES = 10
+T = 10  # number of iterations

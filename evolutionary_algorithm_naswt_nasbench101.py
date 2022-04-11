@@ -4,7 +4,8 @@ import os
 import copy
 import time
 
-from nasbench101_utils_dnc import EXP_REPEAT_TIMES, POPULATION_SIZE, MAX_CONNECTIONS, NUM_GEN, T
+from params import EXP_REPEAT_TIMES, POPULATION_SIZE, NUM_GEN, T
+from nasbench101_utils_dnc import MAX_CONNECTIONS
 from nasbench101_utils_dnc import randomly_sample_architecture, create_nord_architecture, tournament_selection, bitwise_mutation
 
 import argparse
@@ -38,7 +39,7 @@ def evolutionary_algorithm_naswt():
 
     if not os.path.exists('results_ga_dnc101_naswt_' + str(args.batch_size)):
         os.mkdir('results_ga_dnc101_naswt_' + str(args.batch_size))
-    for exp_repeat_index in range(7, EXP_REPEAT_TIMES+1):
+    for exp_repeat_index in range(EXP_REPEAT_TIMES):
         start_time = time.time()
         folder_name = 'results_ga_dnc101_naswt_' + str(args.batch_size) + '/results' + str(exp_repeat_index + 1)
         if not os.path.exists(folder_name):

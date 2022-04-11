@@ -4,12 +4,6 @@ import itertools
 import numpy as np
 import copy
 
-MAX_TIME_BUDGET = 6000000
-POPULATION_SIZE = 100
-NUM_GEN = 10  # G
-K = 30
-H = 20
-EXP_REPEAT_TIMES = 10
 
 NUM_LAYERS = 8  # including INPUT and OUTPUT (nasbench-201 supports architectures with up to 8 layers)
 NUM_OPS = 4  # nasbench-101 supports four types of operations (CONV1X1, CONV3X3, AVGPOOL3X3, SKIPCONNECT)

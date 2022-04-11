@@ -4,14 +4,6 @@ import copy
 from nord.neural_nets import NeuralDescriptor
 
 
-MAX_TIME_BUDGET = 6000000
-POPULATION_SIZE = 100
-NUM_GEN = 10  # G
-K = 30
-H = 20
-EXP_REPEAT_TIMES = 10
-T = 10  # number of iterations
-
 NUM_LAYERS = 7  # including INPUT and OUTPUT (nasbench-101 supports architectures with up to 7 layers)
 NUM_OPS = 3  # nasbench-101 supports three types of operations (CONV1X1, CONV3X3, MAXPOOL3X3)
 LENGTH_CONN_SEQ = 0

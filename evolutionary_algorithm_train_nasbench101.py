@@ -3,7 +3,9 @@ import os
 import copy
 import time
 
-from nasbench101_utils_dnc import EXP_REPEAT_TIMES, POPULATION_SIZE, MAX_CONNECTIONS, NUM_GEN, T
+
+from params import EXP_REPEAT_TIMES, POPULATION_SIZE, NUM_GEN, T
+from nasbench101_utils_dnc import MAX_CONNECTIONS
 from nasbench101_utils_dnc import randomly_sample_architecture, create_nord_architecture, tournament_selection, bitwise_mutation
 
 

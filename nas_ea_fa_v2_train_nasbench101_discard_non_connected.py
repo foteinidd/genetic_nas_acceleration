@@ -6,7 +6,8 @@ import copy
 from contextlib import redirect_stdout
 import time
 
-from nasbench101_utils_dnc import EXP_REPEAT_TIMES, MAX_TIME_BUDGET, POPULATION_SIZE, MAX_CONNECTIONS, NUM_GEN, K, H
+from params import EXP_REPEAT_TIMES, MAX_TIME_BUDGET, POPULATION_SIZE, NUM_GEN, K, H
+from nasbench101_utils_dnc import MAX_CONNECTIONS
 from nasbench101_utils_dnc import randomly_sample_architecture, create_nord_architecture, \
     get_all_isomorphic_sequences, get_min_distance, get_model_sequences, tournament_selection, bitwise_mutation
 
