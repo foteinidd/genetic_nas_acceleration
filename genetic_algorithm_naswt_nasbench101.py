@@ -32,7 +32,7 @@ parser.add_argument('--dataset', default='cifar10', type=str, help='dataset')
 args = parser.parse_args(args=[])
 
 
-def evolutionary_algorithm_naswt():
+def genetic_algorithm_naswt_101():
     # Instantiate the evaluators
     evaluator = BenchmarkEvaluator()
     naswt_evaluator = NASWT_Evaluator()
@@ -228,4 +228,4 @@ def evolutionary_algorithm_naswt():
 
 
 if __name__ == '__main__':
-    evolutionary_algorithm_naswt()
+    genetic_algorithm_naswt_101()

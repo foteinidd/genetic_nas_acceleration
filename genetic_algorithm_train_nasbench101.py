@@ -9,7 +9,7 @@ from nasbench101_utils_dnc import MAX_CONNECTIONS
 from nasbench101_utils_dnc import randomly_sample_architecture, create_nord_architecture, tournament_selection, bitwise_mutation
 
 
-def evolutionary_algorithm():
+def genetic_algorithm_train_101():
     # Instantiate the evaluator
     evaluator = BenchmarkEvaluator()
 
@@ -137,4 +137,4 @@ def evolutionary_algorithm():
 
 
 if __name__ == '__main__':
-    evolutionary_algorithm()
+    genetic_algorithm_train_101()
