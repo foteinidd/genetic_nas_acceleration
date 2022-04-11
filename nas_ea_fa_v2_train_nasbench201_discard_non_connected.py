@@ -6,12 +6,15 @@ import copy
 from contextlib import redirect_stdout
 import time
 
-from params import EXP_REPEAT_TIMES, MAX_TIME_BUDGET, POPULATION_SIZE, NUM_GEN, K, H
+from params import EXP_REPEAT_TIMES, MAX_TIME_BUDGET, POPULATION_SIZE, NUM_GEN, K, H, T
 from nasbench201_utils_dnc import randomly_sample_architecture, create_nord_architecture, \
     get_all_isomorphic_sequences, get_min_distance, get_model_sequences, tournament_selection, bitwise_mutation
 
+from performance_evaluation import progress_update, save_performance
+from save_individual import save_individual_201_dnc, save_individual_fitness_approximation
 
-def NAS_EA_FA_V2():
+
+def NAS_EA_FA_V2_train_201():
     # Instantiate the evaluator
     evaluator = NATSBench_Evaluator()
 
@@ -19,14 +22,16 @@ def NAS_EA_FA_V2():
         os.mkdir('results_nas_ea_fa_v2_dnc201_train')
     for exp_repeat_index in range(EXP_REPEAT_TIMES):
         start_time = time.time()
-        folder_name = 'results_nas_ea_fa_v2_dnc201_train/results' + str(exp_repeat_index + 1)
+        folder_name = os.path.join('results_nas_ea_fa_v2_dnc201_train', 'results' + str(exp_repeat_index + 1))
         if not os.path.exists(folder_name):
             os.mkdir(folder_name)
 
         best_val_acc = []
-        best_test_acc = []
+        best_test_acc_based_on_val_acc = []
         train_times = []
-        total_time = []
+        total_train_time = []
+
+        best_test_acc = []
 
         x_train = []
         y_train = []
@@ -62,7 +67,8 @@ def NAS_EA_FA_V2():
         num_file = 0
 
         t = 0  # iteration count
-        while current_time_budget <= MAX_TIME_BUDGET:
+        # while current_time_budget <= MAX_TIME_BUDGET:
+        while t < T:
             tic = time.time()
             t += 1
             # sort in descending order by fitness
@@ -97,41 +103,20 @@ def NAS_EA_FA_V2():
                     continue
 
                 new_population.append(architecture)
-                # x_train.append(get_sequence(get_node_encoding(architecture.layers).flatten(), architecture.connections))
-                # y_train.append(val_acc)
-
-                # print('architecture:', architecture.layers)
 
                 # get isomorphic sequences
                 isomorphic_sequences = get_all_isomorphic_sequences(architecture)
                 x_train.extend(isomorphic_sequences)
                 for _ in range(len(isomorphic_sequences)):
                     y_train.append(val_acc)
-                # # print('isomorphic sequences (topK) initial length:', len(isomorphic_sequences))
-                # isomorphic_sequences_unique = []
-                # for arr in isomorphic_sequences:
-                #   if not any(np.array_equal(arr, unique_arr) for unique_arr in isomorphic_sequences_unique):
-                #     isomorphic_sequences_unique.append(arr)
-                # # print('isomorphic sequences (topK) length:', len(isomorphic_sequences_unique))
-                # x_train.extend(isomorphic_sequences_unique)
-                # for _ in range(len(isomorphic_sequences_unique)):
-                #     y_train.append(val_acc)
 
-                if best_val_acc != []:
-                    if val_acc > best_val_acc[-1]:
-                        best_val_acc.append(val_acc)
-                        best_test_acc.append(test_acc)
-                    else:
-                        best_val_acc.append(best_val_acc[-1])
-                        best_test_acc.append(best_test_acc[-1])
-                else:
-                    best_val_acc.append(val_acc)
-                    best_test_acc.append(test_acc)
-                train_times.append(train_time)
-                if total_time != []:
-                    total_time.append(total_time[-1] + train_time)
-                else:
-                    total_time.append(train_time)
+                best_val_acc, best_test_acc_based_on_val_acc, best_test_acc, train_times = \
+                    progress_update(val_acc=val_acc, test_acc=test_acc, train_time=train_time,
+                                    best_val_acc=best_val_acc,
+                                    best_test_acc_based_on_val_acc=best_test_acc_based_on_val_acc,
+                                    best_test_acc=best_test_acc, train_times=train_times,
+                                    total_train_time=total_train_time, fitness='val_acc')
+
                 current_time_budget += train_time
 
                 num_arch += 1
@@ -141,54 +126,22 @@ def NAS_EA_FA_V2():
                     break
 
             num_file += 1
-            with open(folder_name + '/topK_iteration' + str(num_file) + '.txt', 'w') as f:
+            with open(os.path.join(folder_name, 'topK_iteration' + str(num_file) + '.txt'), 'w') as f:
                 ind_num = 0
                 for ind in new_population:
                     ind_num += 1
-                    f.write('architecture' + str(ind_num) + '\n')
-                    f.write('layers: ')
-                    for op in ind.layers:
-                        f.write(op + ' ')
-                    f.write('\n')
-                    f.write('simplified layers: ')
-                    for op in ind.simplified_layers:
-                        f.write(op + ' ')
-                    f.write('\n')
-                    f.write('connections: ')
-                    for conn in ind.connections:
-                        f.write(str(int(conn)) + ' ')
-                    f.write('\n')
-                    f.write('simplified connection matrix: ')
-                    f.write('\n')
-                    for row in ind.simplified_connection_matrix:
-                        for conn in row:
-                            f.write(str(int(conn)) + ' ')
-                        f.write('\n')
-                    f.write('fitness (validation accuracy): ')
-                    f.write(str(ind.fitness))
-                    f.write('\n')
-                    f.write('test accuracy: ')
-                    f.write(str(ind.test_acc))
-                    f.write('\n')
-                    f.write('train time: ')
-                    f.write(str(ind.train_time))
-                    f.write('\n')
+                    save_individual_201_dnc(f, ind, ind_num, 'val_acc')
 
             num_topK = len(new_population)
-
-            # print('experiment index:', exp_repeat_index, 't=' + str(t), 'got to line 109')
 
             # train and evaluate top H individuals
             tic1 = time.time()
             # get min distance between each of the remaining individuals and the training set
-            # dist_list = [get_min_distance(x_train, get_sequence(get_node_encoding(architecture.layers).flatten(), architecture.connections)) for architecture in population[start_index + 1:]]
             dist_list = [get_min_distance(x_train, get_model_sequences(architecture)) for architecture in
                          population[start_index + 1:]]
             toc1 = time.time()
             print('x_train length:', len(x_train))
             print('dist_list calculation time:', toc1 - tic1, 'sec')
-
-            # print('experiment index:', exp_repeat_index, 't=' + str(t), 'got to line 123')
 
             while num_arch < K + H and current_time_budget <= MAX_TIME_BUDGET:
                 # find architecture with max distance from training set
@@ -204,7 +157,6 @@ def NAS_EA_FA_V2():
 
                 d = create_nord_architecture(architecture)
 
-                # evaluate architecture
                 # evaluate architecture
                 train_loss, val_loss, test_loss, train_acc, val_acc, test_acc, latency, train_time = \
                     evaluator.descriptor_evaluate(d, metrics=['train_loss',
@@ -225,88 +177,43 @@ def NAS_EA_FA_V2():
                     continue
 
                 new_population.append(architecture)
-                # x_train.append(get_sequence(get_node_encoding(architecture.layers).flatten(), architecture.connections))
-                # y_train.append(val_acc)
 
                 # get isomorphic sequences
                 isomorphic_sequences = get_all_isomorphic_sequences(architecture)
                 x_train.extend(isomorphic_sequences)
                 for _ in range(len(isomorphic_sequences)):
                     y_train.append(val_acc)
-                # # print('isomorphic sequences (topH) initial length:', len(isomorphic_sequences))
-                # isomorphic_sequences_unique = []
-                # for arr in isomorphic_sequences:
-                #   if not any(np.array_equal(arr, unique_arr) for unique_arr in isomorphic_sequences_unique):
-                #     isomorphic_sequences_unique.append(arr)
-                # # print('isomorphic sequences (topH) length:', len(isomorphic_sequences_unique))
-                # x_train.extend(isomorphic_sequences_unique)
-                # for _ in range(len(isomorphic_sequences_unique)):
-                #     y_train.append(val_acc)
 
-                if best_val_acc != []:
-                    if val_acc > best_val_acc[-1]:
-                        best_val_acc.append(val_acc)
-                        best_test_acc.append(test_acc)
-                    else:
-                        best_val_acc.append(best_val_acc[-1])
-                        best_test_acc.append(best_test_acc[-1])
-                else:
-                    best_val_acc.append(val_acc)
-                    best_test_acc.append(test_acc)
-                train_times.append(train_time)
-                if total_time != []:
-                    total_time.append(total_time[-1] + train_time)
-                else:
-                    total_time.append(train_time)
+                best_val_acc, best_test_acc_based_on_val_acc, best_test_acc, train_times = \
+                    progress_update(val_acc=val_acc, test_acc=test_acc, train_time=train_time,
+                                    best_val_acc=best_val_acc,
+                                    best_test_acc_based_on_val_acc=best_test_acc_based_on_val_acc,
+                                    best_test_acc=best_test_acc, train_times=train_times,
+                                    total_train_time=total_train_time, fitness='val_acc')
+
                 current_time_budget += train_time
 
                 num_arch += 1
 
-            with open(folder_name + '/topH_iteration' + str(num_file) + '.txt', 'w') as f:
+            with open(os.path.join(folder_name, 'topH_iteration' + str(num_file) + '.txt'), 'w') as f:
                 ind_num = num_topK
                 for index in range(num_topK, len(new_population)):
                     ind = new_population[index]
                     ind_num += 1
-                    f.write('architecture' + str(ind_num) + '\n')
-                    f.write('layers: ')
-                    for op in ind.layers:
-                        f.write(op + ' ')
-                    f.write('\n')
-                    f.write('simplified layers: ')
-                    for op in ind.simplified_layers:
-                        f.write(op + ' ')
-                    f.write('\n')
-                    f.write('connections: ')
-                    for conn in ind.connections:
-                        f.write(str(int(conn)) + ' ')
-                    f.write('\n')
-                    f.write('simplified connection matrix: ')
-                    f.write('\n')
-                    for row in ind.simplified_connection_matrix:
-                        for conn in row:
-                            f.write(str(int(conn)) + ' ')
-                        f.write('\n')
-                    f.write('fitness (validation accuracy): ')
-                    f.write(str(ind.fitness))
-                    f.write('\n')
-                    f.write('test accuracy: ')
-                    f.write(str(ind.test_acc))
-                    f.write('\n')
-                    f.write('train time: ')
-                    f.write(str(ind.train_time))
-                    f.write('\n')
+                    save_individual_201_dnc(f, ind, ind_num, 'val_acc')
 
             # update population
             if len(new_population) != 0:
                 population = new_population
 
             # train fitness approximation
-            with open(folder_name + '/xgb_stats_iteration' + str(num_file) + '.txt', 'w') as f:
+            with open(os.path.join(folder_name, 'xgb_stats_iteration' + str(num_file) + '.txt'), 'w') as f:
                 with redirect_stdout(f):
                     # xgb_model = XGBRegressor(objective='reg:squarederror', learning_rate=0.1)
                     xgb_model = XGBRegressor(eta=0.1)
                     if t > 1:
-                        xgb_model.fit(np.array(x_train), np.array(y_train), eval_set=[(x_train, y_train), (x_val, y_val)],
+                        xgb_model.fit(np.array(x_train), np.array(y_train),
+                                      eval_set=[(x_train, y_train), (x_val, y_val)],
                                       eval_metric='rmse')
                     else:
                         xgb_model.fit(np.array(x_train), np.array(y_train), eval_set=[(x_train, y_train)],
@@ -326,69 +233,35 @@ def NAS_EA_FA_V2():
                         individual = copy.deepcopy(tournament_selection(population))
                         new_individual = bitwise_mutation(individual)
 
-                    # new_individual.fitness = xgb_model.predict(np.array([get_sequence(get_node_encoding(new_individual.layers).flatten(), new_individual.connections)]))[0]
                     new_individual.fitness = xgb_model.predict(np.array([get_model_sequences(new_individual)]))[0]
+
                     new_population.append(new_individual)
                     total_population.append(new_individual)
+
                 population = new_population
 
-                with open(folder_name + '/population_iteration' + str(num_file) + '_epoch' + str(epoch + 1) + '.txt',
-                          'w') as f:
+                with open(os.path.join(folder_name, 'population_iteration' + str(num_file) + '_epoch' + str(epoch + 1) +
+                                                    '.txt'), 'w') as f:
                     ind_num = 0
                     for ind in population:
                         ind_num += 1
-                        f.write('architecture' + str(ind_num) + '\n')
-                        f.write('layers: ')
-                        for op in ind.layers:
-                            f.write(op + ' ')
-                        f.write('\n')
-                        f.write('simplified layers: ')
-                        for op in ind.simplified_layers:
-                            f.write(op + ' ')
-                        f.write('\n')
-                        f.write('connections: ')
-                        for conn in ind.connections:
-                            f.write(str(int(conn)) + ' ')
-                        f.write('\n')
-                        f.write('simplified connection matrix: ')
-                        f.write('\n')
-                        for row in ind.simplified_connection_matrix:
-                            for conn in row:
-                                f.write(str(int(conn)) + ' ')
-                            f.write('\n')
-                        f.write('fitness (approximate validation accuracy): ')
-                        f.write(str(ind.fitness))
-                        f.write('\n')
+                        save_individual_fitness_approximation(f, ind, ind_num, 'val_acc')
 
             # validation set for next iteration's xgboost model
             x_val = x_train
             y_val = y_train
 
             toc = time.time()
-            print('experiment index:', exp_repeat_index+1, 'time needed for iteration t=' + str(t) + ':', toc - tic, 'sec')
+            print('experiment index:', exp_repeat_index + 1, 'time needed for iteration t=' + str(t) + ':', toc - tic,
+                  'sec')
             print('current time budget:', current_time_budget, 'max time budget:', MAX_TIME_BUDGET)
 
         end_time = time.time()
 
-        with open(folder_name + '/best_val_acc' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            for element in best_val_acc:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/best_test_acc' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            for element in best_test_acc:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/train_times' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            for element in train_times:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/total_time' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            for element in total_time:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/execution_time' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            f.write(str(end_time - start_time) + '\n')  # in seconds'
+        save_performance(folder_name, exp_repeat_index, start_time, end_time, best_val_acc,
+                         best_test_acc_based_on_val_acc, best_test_acc, train_times, total_train_time,
+                         'val_acc')
 
 
 if __name__ == '__main__':
-    NAS_EA_FA_V2()
+    NAS_EA_FA_V2_train_201()

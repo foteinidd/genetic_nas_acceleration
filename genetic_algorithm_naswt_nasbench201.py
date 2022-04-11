@@ -149,7 +149,7 @@ def genetic_algorithm_naswt_201():
                 ind_num = 0
                 for ind in new_population:
                     ind_num += 1
-                    save_individual_201_dnc(f, ind, ind_num)
+                    save_individual_201_dnc(f, ind, ind_num, 'naswt')
 
             toc = time.time()
             print('experiment index:', exp_repeat_index + 1, 'time needed for epoch ' + str(epoch + 1) + ':', toc - tic,

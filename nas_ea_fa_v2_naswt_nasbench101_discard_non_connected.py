@@ -12,6 +12,7 @@ from nasbench101_utils_dnc import MAX_CONNECTIONS
 from nasbench101_utils_dnc import randomly_sample_architecture, create_nord_architecture, \
     get_all_isomorphic_sequences, get_min_distance, get_model_sequences, tournament_selection, bitwise_mutation
 
+from performance_evaluation import progress_update, save_performance
 from save_individual import save_individual_101_dnc, save_individual_fitness_approximation
 
 import argparse
@@ -38,7 +39,7 @@ parser.add_argument('--dataset', default='cifar10', type=str, help='dataset')
 args = parser.parse_args(args=[])
 
 
-def NAS_EA_FA_V2_naswt():
+def NAS_EA_FA_V2_naswt_101():
     # Instantiate the evaluators
     benchmark_evaluator = BenchmarkEvaluator()
     naswt_evaluator = NASWT_Evaluator()
@@ -47,21 +48,24 @@ def NAS_EA_FA_V2_naswt():
         os.mkdir('results_nas_ea_fa_v2_dnc101_naswt_' + str(args.batch_size))
     for exp_repeat_index in range(EXP_REPEAT_TIMES):
         start_time = time.time()
-        folder_name = 'results_nas_ea_fa_v2_dnc101_naswt_' + str(args.batch_size) + '/results' + str(exp_repeat_index + 1)
+        folder_name = os.path.join('results_nas_ea_fa_v2_dnc101_naswt_' + str(args.batch_size), 'results' +
+                                   str(exp_repeat_index + 1))
         if not os.path.exists(folder_name):
             os.mkdir(folder_name)
 
-        best_score = []
         best_val_acc = []
-        best_test_acc = []
+        best_test_acc_based_on_val_acc = []
+        best_naswt_score_based_on_val_acc = []
         train_times = []
         naswt_calc_times = []
         total_train_time = []
         total_naswt_calc_time = []
 
-        best_score_absolute = []
-        best_val_acc_based_on_fitness = []
-        best_test_acc_based_on_fitness = []
+        best_naswt_score = []
+        best_val_acc_based_on_naswt_score = []
+        best_test_acc_based_on_naswt_score = []
+
+        best_test_acc = []
 
         x_train = []
         y_train = []
@@ -104,15 +108,16 @@ def NAS_EA_FA_V2_naswt():
 
                 arch = ModelSpec(matrix=architecture.simplified_connection_matrix, ops=architecture.simplified_layers)
                 net = Network(arch, args)
-                K_matrix, score, calc_time = naswt_evaluator.net_evaluate(net=net, batch_size=args.batch_size,
-                                                                           dataset=args.dataset)
+                K_matrix, naswt_score, naswt_calc_time = naswt_evaluator.net_evaluate(net=net,
+                                                                                      batch_size=args.batch_size,
+                                                                                      dataset=args.dataset)
                 print('topK', 'num_arch:', num_arch, 'naswt_calc_time:', calc_time, 'sec')
 
-                architecture.fitness = score
+                architecture.fitness = naswt_score
                 architecture.val_acc = val_acc
                 architecture.test_acc = test_acc
                 architecture.train_time = train_time
-                architecture.naswt_calc_time = calc_time
+                architecture.naswt_calc_time = naswt_calc_time
 
                 if time == 0.0:
                     continue
@@ -123,45 +128,22 @@ def NAS_EA_FA_V2_naswt():
                 isomorphic_sequences = get_all_isomorphic_sequences(architecture)
                 x_train.extend(isomorphic_sequences)
                 for _ in range(len(isomorphic_sequences)):
-                    y_train.append(score)
+                    y_train.append(naswt_score)
 
-                if best_val_acc != []:
-                    if val_acc > best_val_acc[-1]:
-                        best_score.append(score)
-                        best_val_acc.append(val_acc)
-                        best_test_acc.append(test_acc)
-                    else:
-                        best_score.append(best_score[-1])
-                        best_val_acc.append(best_val_acc[-1])
-                        best_test_acc.append(best_test_acc[-1])
-                else:
-                    best_score.append(score)
-                    best_val_acc.append(val_acc)
-                    best_test_acc.append(test_acc)
-
-                train_times.append(train_time)
-                naswt_calc_times.append(calc_time)
-
-                if total_train_time != []:
-                    total_train_time.append(total_train_time[-1] + train_time)
-                    total_naswt_calc_time.append(total_naswt_calc_time[-1] + calc_time)
-                else:
-                    total_train_time.append(train_time)
-                    total_naswt_calc_time.append(calc_time)
-
-                if best_score_absolute != []:
-                    if score > best_score_absolute[-1]:
-                        best_score_absolute.append(score)
-                        best_val_acc_based_on_fitness.append(val_acc)
-                        best_test_acc_based_on_fitness.append(test_acc)
-                    else:
-                        best_score_absolute.append(best_score_absolute[-1])
-                        best_val_acc_based_on_fitness.append(best_val_acc_based_on_fitness[-1])
-                        best_test_acc_based_on_fitness.append(best_test_acc_based_on_fitness[-1])
-                else:
-                    best_score_absolute.append(score)
-                    best_val_acc_based_on_fitness.append(val_acc)
-                    best_test_acc_based_on_fitness.append(test_acc)
+                best_val_acc, best_test_acc_based_on_val_acc, best_naswt_score_based_on_val_acc, best_test_acc, \
+                best_naswt_score, best_val_acc_based_on_naswt_score, best_test_acc_based_on_naswt_score, train_times, \
+                naswt_calc_times, total_train_time, total_naswt_calc_time = \
+                    progress_update(val_acc=val_acc, test_acc=test_acc, train_time=train_time,
+                                    best_val_acc=best_val_acc,
+                                    best_test_acc_based_on_val_acc=best_test_acc_based_on_val_acc,
+                                    best_test_acc=best_test_acc, train_times=train_times,
+                                    total_train_time=total_train_time, fitness='naswt', naswt_score=naswt_score,
+                                    naswt_calc_time=naswt_calc_time,
+                                    best_naswt_score_based_on_val_acc=best_naswt_score_based_on_val_acc,
+                                    best_naswt_score=best_naswt_score,
+                                    best_val_acc_based_on_naswt_score=best_val_acc_based_on_naswt_score,
+                                    best_test_acc_based_on_naswt_score=best_test_acc_based_on_naswt_score,
+                                    naswt_calc_times=naswt_calc_times, total_naswt_calc_time=total_naswt_calc_time)
 
                 current_time_budget += train_time
 
@@ -172,18 +154,17 @@ def NAS_EA_FA_V2_naswt():
                     break
 
             num_file += 1
-            with open(folder_name + '/topK_iteration' + str(num_file) + '.txt', 'w') as f:
+            with open(os.path.join(folder_name, 'topK_iteration' + str(num_file) + '.txt'), 'w') as f:
                 ind_num = 0
                 for ind in new_population:
                     ind_num += 1
-                    save_individual_101_dnc(f, ind, ind_num)
+                    save_individual_101_dnc(f, ind, ind_num, 'naswt')
 
             num_topK = len(new_population)
 
             # train and evaluate top H individuals
             tic1 = time.time()
             # get min distance between each of the remaining individuals and the training set
-            # dist_list = [get_min_distance(x_train, get_sequence(get_node_encoding(architecture.layers).flatten(), architecture.connections)) for architecture in population[start_index + 1:]]
             dist_list = [get_min_distance(x_train, get_model_sequences(architecture)) for architecture in
                          population[start_index + 1:]]
             toc1 = time.time()
@@ -210,15 +191,16 @@ def NAS_EA_FA_V2_naswt():
 
                 arch = ModelSpec(matrix=architecture.simplified_connection_matrix, ops=architecture.simplified_layers)
                 net = Network(arch, args)
-                K_matrix, score, calc_time = naswt_evaluator.net_evaluate(net=net, batch_size=args.batch_size,
-                                                                           dataset=args.dataset)
-                print('topH', 'num_arch:', num_arch, 'naswt_calc_time:', calc_time, 'sec')
+                K_matrix, naswt_score, naswt_calc_time = naswt_evaluator.net_evaluate(net=net,
+                                                                                      batch_size=args.batch_size,
+                                                                                      dataset=args.dataset)
+                print('topH', 'num_arch:', num_arch, 'naswt_calc_time:', naswt_calc_time, 'sec')
 
-                architecture.fitness = score
+                architecture.fitness = naswt_score
                 architecture.val_acc = val_acc
                 architecture.test_acc = test_acc
                 architecture.train_time = train_time
-                architecture.naswt_calc_time = calc_time
+                architecture.naswt_calc_time = naswt_calc_time
 
                 if time == 0.0:
                     continue
@@ -229,63 +211,40 @@ def NAS_EA_FA_V2_naswt():
                 isomorphic_sequences = get_all_isomorphic_sequences(architecture)
                 x_train.extend(isomorphic_sequences)
                 for _ in range(len(isomorphic_sequences)):
-                    y_train.append(score)
+                    y_train.append(naswt_score)
 
-                if best_val_acc != []:
-                    if val_acc > best_val_acc[-1]:
-                        best_score.append(score)
-                        best_val_acc.append(val_acc)
-                        best_test_acc.append(test_acc)
-                    else:
-                        best_score.append(best_score[-1])
-                        best_val_acc.append(best_val_acc[-1])
-                        best_test_acc.append(best_test_acc[-1])
-                else:
-                    best_score.append(score)
-                    best_val_acc.append(val_acc)
-                    best_test_acc.append(test_acc)
-
-                train_times.append(train_time)
-                naswt_calc_times.append(calc_time)
-
-                if total_train_time != []:
-                    total_train_time.append(total_train_time[-1] + train_time)
-                    total_naswt_calc_time.append(total_naswt_calc_time[-1] + calc_time)
-                else:
-                    total_train_time.append(train_time)
-                    total_naswt_calc_time.append(calc_time)
-
-                if best_score_absolute != []:
-                    if score > best_score_absolute[-1]:
-                        best_score_absolute.append(score)
-                        best_val_acc_based_on_fitness.append(val_acc)
-                        best_test_acc_based_on_fitness.append(test_acc)
-                    else:
-                        best_score_absolute.append(best_score_absolute[-1])
-                        best_val_acc_based_on_fitness.append(best_val_acc_based_on_fitness[-1])
-                        best_test_acc_based_on_fitness.append(best_test_acc_based_on_fitness[-1])
-                else:
-                    best_score_absolute.append(score)
-                    best_val_acc_based_on_fitness.append(val_acc)
-                    best_test_acc_based_on_fitness.append(test_acc)
+                best_val_acc, best_test_acc_based_on_val_acc, best_naswt_score_based_on_val_acc, best_test_acc, \
+                best_naswt_score, best_val_acc_based_on_naswt_score, best_test_acc_based_on_naswt_score, train_times, \
+                naswt_calc_times, total_train_time, total_naswt_calc_time = \
+                    progress_update(val_acc=val_acc, test_acc=test_acc, train_time=train_time,
+                                    best_val_acc=best_val_acc,
+                                    best_test_acc_based_on_val_acc=best_test_acc_based_on_val_acc,
+                                    best_test_acc=best_test_acc, train_times=train_times,
+                                    total_train_time=total_train_time, fitness='naswt', naswt_score=naswt_score,
+                                    naswt_calc_time=naswt_calc_time,
+                                    best_naswt_score_based_on_val_acc=best_naswt_score_based_on_val_acc,
+                                    best_naswt_score=best_naswt_score,
+                                    best_val_acc_based_on_naswt_score=best_val_acc_based_on_naswt_score,
+                                    best_test_acc_based_on_naswt_score=best_test_acc_based_on_naswt_score,
+                                    naswt_calc_times=naswt_calc_times, total_naswt_calc_time=total_naswt_calc_time)
 
                 current_time_budget += train_time
 
                 num_arch += 1
 
-            with open(folder_name + '/topH_iteration' + str(num_file) + '.txt', 'w') as f:
+            with open(os.path.join(folder_name, 'topH_iteration' + str(num_file) + '.txt'), 'w') as f:
                 ind_num = num_topK
                 for index in range(num_topK, len(new_population)):
                     ind = new_population[index]
                     ind_num += 1
-                    save_individual_101_dnc(f, ind, ind_num)
+                    save_individual_101_dnc(f, ind, ind_num, 'naswt')
 
             # update population
             if len(new_population) != 0:
                 population = new_population
 
             # train fitness approximation
-            with open(folder_name + '/xgb_stats_iteration' + str(num_file) + '.txt', 'w') as f:
+            with open(os.path.join(folder_name, 'xgb_stats_iteration' + str(num_file) + '.txt'), 'w') as f:
                 with redirect_stdout(f):
                     # xgb_model = XGBRegressor(objective='reg:squarederror', learning_rate=0.1)
                     xgb_model = XGBRegressor(eta=0.1)
@@ -306,7 +265,6 @@ def NAS_EA_FA_V2_naswt():
                     individual = copy.deepcopy(tournament_selection(population))
                     new_individual = bitwise_mutation(individual)
 
-                    # new_individual.fitness = xgb_model.predict(np.array([get_sequence(get_node_encoding(new_individual.layers).flatten(), new_individual.connections)]))[0]
                     new_individual.fitness = xgb_model.predict(np.array([get_model_sequences(new_individual)]))[0]
 
                     new_population.append(new_individual)
@@ -314,66 +272,30 @@ def NAS_EA_FA_V2_naswt():
 
                 population = new_population
 
-                with open(folder_name + '/population_iteration' + str(num_file) + '_epoch' + str(epoch + 1) + '.txt',
-                          'w') as f:
+                with open(os.path.join(folder_name, 'population_iteration' + str(num_file) + '_epoch' + str(epoch + 1) +
+                                                    '.txt'), 'w') as f:
                     ind_num = 0
                     for ind in population:
                         ind_num += 1
-                        save_individual_fitness_approximation(f, ind, ind_num, 'naswt_score')
+                        save_individual_fitness_approximation(f, ind, ind_num, 'naswt')
 
             # validation set for next iteration's xgboost model
             x_val = x_train
             y_val = y_train
 
             toc = time.time()
-            print('experiment index:', exp_repeat_index+1, 'time needed for iteration t=' + str(t) + ':', toc - tic, 'sec')
+            print('experiment index:', exp_repeat_index+1, 'time needed for iteration t=' + str(t) + ':', toc - tic,
+                  'sec')
             print('current time budget:', current_time_budget, 'max time budget:', MAX_TIME_BUDGET)
 
         end_time = time.time()
 
-        with open(folder_name + '/best_naswt_score' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            for element in best_score:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/best_val_acc' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            for element in best_val_acc:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/best_test_acc' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            for element in best_test_acc:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/train_times' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            for element in train_times:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/total_train_time' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
-            for element in total_train_time:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/naswt_calc_times' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            for element in naswt_calc_times:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/total_naswt_calc_time' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            for element in total_naswt_calc_time:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/execution_time' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            f.write(str(end_time - start_time) + '\n')  # in seconds
-
-        with open(folder_name + '/best_naswt_score_absolute' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            for element in best_score_absolute:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/best_val_acc_based_on_fitness' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            for element in best_val_acc_based_on_fitness:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/best_test_acc_based_on_fitness' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            for element in best_test_acc_based_on_fitness:
-                f.write(str(element) + '\n')
+        save_performance(folder_name, exp_repeat_index, start_time, end_time, best_val_acc,
+                         best_test_acc_based_on_val_acc, best_test_acc, train_times, total_train_time,
+                         'naswt', best_naswt_score_based_on_val_acc, best_naswt_score,
+                         best_val_acc_based_on_naswt_score, best_test_acc_based_on_naswt_score,
+                         naswt_calc_times, total_naswt_calc_time)
 
 
 if __name__ == '__main__':
-    NAS_EA_FA_V2_naswt()
+    NAS_EA_FA_V2_naswt_101()
