@@ -36,7 +36,6 @@ def evolutionary_algorithm_naswt():
         os.mkdir('results_ga_dnc201_naswt_' + str(batch_size))
     for exp_repeat_index in range(EXP_REPEAT_TIMES):
         start_time = time.time()
-        # folder_name = 'results_ga_dnc201_naswt_' + str(batch_size) + '/results' + str(exp_repeat_index + 1)
         folder_name = os.path.join('results_ga_dnc201_naswt_' + str(batch_size), 'results' + str(exp_repeat_index + 1))
         if not os.path.exists(folder_name):
             os.mkdir(folder_name)
