@@ -8,6 +8,9 @@ from params import EXP_REPEAT_TIMES, POPULATION_SIZE, NUM_GEN, T
 from nasbench101_utils_dnc import MAX_CONNECTIONS
 from nasbench101_utils_dnc import randomly_sample_architecture, create_nord_architecture, tournament_selection, bitwise_mutation
 
+from performance_evaluation import progress_update, save_performance
+from save_individual import save_individual_101_dnc
+
 import argparse
 
 parser = argparse.ArgumentParser(description='NASBench')
@@ -45,19 +48,19 @@ def genetic_algorithm_naswt_101():
         if not os.path.exists(folder_name):
             os.mkdir(folder_name)
 
-        best_score = []
         best_val_acc = []
-        best_test_acc = []
+        best_test_acc_based_on_val_acc = []
+        best_naswt_score_based_on_val_acc = []
         train_times = []
         naswt_calc_times = []
         total_train_time = []
         total_naswt_calc_time = []
 
-        best_score_absolute = []
-        best_val_acc_based_on_fitness = []
-        best_test_acc_based_on_fitness = []
+        best_naswt_score = []
+        best_val_acc_based_on_naswt_score = []
+        best_test_acc_based_on_naswt_score = []
 
-        best_test_acc_absolute = []
+        best_test_acc = []
 
         # Randomly sample POPULATION_SIZE architectures with an initial fitness of 0
         total_population = []
@@ -90,64 +93,34 @@ def genetic_algorithm_naswt_101():
                 arch = ModelSpec(matrix=new_individual.simplified_connection_matrix,
                                  ops=new_individual.simplified_layers)
                 net = Network(arch, args)
-                K_matrix, score, calc_time = naswt_evaluator.net_evaluate(net=net, batch_size=args.batch_size,
-                                                                           dataset=args.dataset)
+                K_matrix, naswt_score, naswt_calc_time = naswt_evaluator.net_evaluate(net=net,
+                                                                                      batch_size=args.batch_size,
+                                                                                      dataset=args.dataset)
 
-                new_individual.fitness = score
+                new_individual.fitness = naswt_score
                 new_individual.val_acc = val_acc
                 new_individual.test_acc = test_acc
                 new_individual.train_time = train_time
-                new_individual.naswt_calc_time = calc_time
+                new_individual.naswt_calc_time = naswt_calc_time
 
-                print('experiment:', exp_repeat_index + 1, 'epoch:', epoch + 1, 'num_arch:', num_arch, 'naswt_calc_time:', calc_time, 'sec')
+                print('experiment:', exp_repeat_index + 1, 'epoch:', epoch + 1, 'num_arch:', num_arch,
+                      'naswt_calc_time:', naswt_calc_time, 'sec')
 
                 new_population.append(new_individual)
 
-                if best_val_acc != []:
-                    if val_acc > best_val_acc[-1]:
-                        best_score.append(score)
-                        best_val_acc.append(val_acc)
-                        best_test_acc.append(test_acc)
-                    else:
-                        best_score.append(best_score[-1])
-                        best_val_acc.append(best_val_acc[-1])
-                        best_test_acc.append(best_test_acc[-1])
-                else:
-                    best_score.append(score)
-                    best_val_acc.append(val_acc)
-                    best_test_acc.append(test_acc)
-
-                train_times.append(train_time)
-                naswt_calc_times.append(calc_time)
-
-                if total_train_time != []:
-                    total_train_time.append(total_train_time[-1] + train_time)
-                    total_naswt_calc_time.append(total_naswt_calc_time[-1] + calc_time)
-                else:
-                    total_train_time.append(train_time)
-                    total_naswt_calc_time.append(calc_time)
-
-                if best_test_acc_absolute != []:
-                    if test_acc > best_test_acc_absolute[-1]:
-                        best_test_acc_absolute.append(test_acc)
-                    else:
-                        best_test_acc_absolute.append(best_test_acc_absolute[-1])
-                else:
-                    best_test_acc_absolute.append(test_acc)
-
-                if best_score_absolute != []:
-                    if score > best_score_absolute[-1]:
-                        best_score_absolute.append(score)
-                        best_val_acc_based_on_fitness.append(val_acc)
-                        best_test_acc_based_on_fitness.append(test_acc)
-                    else:
-                        best_score_absolute.append(best_score_absolute[-1])
-                        best_val_acc_based_on_fitness.append(best_val_acc_based_on_fitness[-1])
-                        best_test_acc_based_on_fitness.append(best_test_acc_based_on_fitness[-1])
-                else:
-                    best_score_absolute.append(score)
-                    best_val_acc_based_on_fitness.append(val_acc)
-                    best_test_acc_based_on_fitness.append(test_acc)
+                best_val_acc, best_test_acc_based_on_val_acc, best_naswt_score_based_on_val_acc, best_test_acc, \
+                best_naswt_score, best_val_acc_based_on_naswt_score, best_test_acc_based_on_naswt_score, train_times, \
+                naswt_calc_times, total_train_time, total_naswt_calc_time = \
+                    progress_update(val_acc=val_acc, test_acc=test_acc, train_time=train_time, best_val_acc=best_val_acc,
+                                    best_test_acc_based_on_val_acc=best_test_acc_based_on_val_acc,
+                                    best_test_acc=best_test_acc, train_times=train_times,
+                                    total_train_time=total_train_time, fitness='naswt', naswt_score=naswt_score,
+                                    naswt_calc_time=naswt_calc_time,
+                                    best_naswt_score_based_on_val_acc=best_naswt_score_based_on_val_acc,
+                                    best_naswt_score=best_naswt_score,
+                                    best_val_acc_based_on_naswt_score=best_val_acc_based_on_naswt_score,
+                                    best_test_acc_based_on_naswt_score=best_test_acc_based_on_naswt_score,
+                                    naswt_calc_times=naswt_calc_times, total_naswt_calc_time=total_naswt_calc_time)
 
             population = new_population
 
@@ -155,76 +128,19 @@ def genetic_algorithm_naswt_101():
                 ind_num = 0
                 for ind in population:
                     ind_num += 1
-                    f.write('architecture' + str(ind_num) + '\n')
-                    f.write('layers: ')
-                    for op in ind.layers:
-                        f.write(op + ' ')
-                    f.write('\n')
-                    f.write('simplified layers: ')
-                    for op in ind.simplified_layers:
-                        f.write(op + ' ')
-                    f.write('\n')
-                    f.write('connections: ')
-                    for conn in ind.connections:
-                        f.write(str(int(conn)) + ' ')
-                    f.write('\n')
-                    f.write('simplified connection matrix: ')
-                    f.write('\n')
-                    for row in ind.simplified_connection_matrix:
-                        for conn in row:
-                            f.write(str(int(conn)) + ' ')
-                        f.write('\n')
-                    f.write('fitness (naswt score): ')
-                    f.write(str(ind.fitness))
-                    f.write('\n')
-                    f.write('validation accuracy: ')
-                    f.write(str(ind.val_acc))
-                    f.write('\n')
-                    f.write('test accuracy: ')
-                    f.write(str(ind.test_acc))
-                    f.write('\n')
-                    f.write('train time: ')
-                    f.write(str(ind.train_time))
-                    f.write('\n')
-                    f.write('naswt calculation time: ')
-                    f.write(str(ind.naswt_calc_time))
-                    f.write('\n')
+                    save_individual_101_dnc(f, ind, ind_num, 'naswt')
 
             toc = time.time()
-            print('experiment index:', exp_repeat_index+1, 'time needed for epoch ' + str(epoch+1) + ':', toc - tic, 'sec')
+            print('experiment index:', exp_repeat_index+1, 'time needed for epoch ' + str(epoch+1) + ':', toc - tic,
+                  'sec')
 
         end_time = time.time()
 
-        with open(folder_name + '/best_naswt_score' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
-            for element in best_score:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/best_val_acc' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
-            for element in best_val_acc:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/best_test_acc' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
-            for element in best_test_acc:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/train_times' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
-            for element in train_times:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/total_train_time' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
-            for element in total_train_time:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/naswt_calc_times' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
-            for element in naswt_calc_times:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/total_naswt_calc_time' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
-            for element in total_naswt_calc_time:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/execution_time' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
-            f.write(str(end_time - start_time) + '\n')  # in seconds
+        save_performance(folder_name, exp_repeat_index, start_time, end_time, best_val_acc,
+                         best_test_acc_based_on_val_acc, best_test_acc, train_times, total_train_time,
+                         'naswt', best_naswt_score_based_on_val_acc, best_naswt_score,
+                         best_val_acc_based_on_naswt_score, best_test_acc_based_on_naswt_score,
+                         naswt_calc_times, total_naswt_calc_time)
 
 
 if __name__ == '__main__':

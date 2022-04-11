@@ -9,7 +9,6 @@ from nasbench201_utils_dnc import randomly_sample_architecture, create_nord_arch
     bitwise_mutation
 
 from performance_evaluation import progress_update, save_performance
-
 from save_individual import save_individual_201_dnc
 
 from nord.utils import DATA_ROOT
