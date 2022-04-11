@@ -20,9 +20,9 @@ from xautodl.models import get_cell_based_tiny_net
 def evolutionary_algorithm_naswt():
     # Initialise NATS-Bench API
     NATSBENCH_NAME = "NATS-tss-v1_0-3ffb9-simple"
-    NATSBENCH_TFRECORD = DATA_ROOT + "/" + NATSBENCH_NAME
+    NATSBENCH_TFRECORD = os.path.join(DATA_ROOT, NATSBENCH_NAME)
     filepath = NATSBENCH_TFRECORD
-    api = create(filepath + "/" + NATSBENCH_NAME, "tss", fast_mode=True, verbose=False)
+    api = create(os.path.join(filepath, NATSBENCH_NAME), "tss", fast_mode=True, verbose=False)
 
     # Instantiate the evaluators
     natsbench_evaluator = NATSBench_Evaluator()
@@ -36,7 +36,8 @@ def evolutionary_algorithm_naswt():
         os.mkdir('results_ga_dnc201_naswt_' + str(batch_size))
     for exp_repeat_index in range(EXP_REPEAT_TIMES):
         start_time = time.time()
-        folder_name = 'results_ga_dnc201_naswt_' + str(batch_size) + '/results' + str(exp_repeat_index + 1)
+        # folder_name = 'results_ga_dnc201_naswt_' + str(batch_size) + '/results' + str(exp_repeat_index + 1)
+        folder_name = os.path.join('results_ga_dnc201_naswt_' + str(batch_size), 'results' + str(exp_repeat_index + 1))
         if not os.path.exists(folder_name):
             os.mkdir(folder_name)
 
@@ -139,7 +140,7 @@ def evolutionary_algorithm_naswt():
 
             population = new_population
 
-            with open(folder_name + '/population_epoch' + str(epoch + 1) + '.txt', 'w') as f:
+            with open(os.path.join(folder_name, 'population_epoch' + str(epoch + 1) + '.txt'), 'w') as f:
                 ind_num = 0
                 for ind in new_population:
                     ind_num += 1

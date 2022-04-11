@@ -1,4 +1,8 @@
-def current_best_val_acc(val_acc, test_acc, naswt_score, best_val_acc, best_test_acc_based_on_val_acc, best_naswt_score_based_on_val_acc):
+import os
+
+
+def current_best_val_acc(val_acc, test_acc, naswt_score, best_val_acc, best_test_acc_based_on_val_acc,
+                         best_naswt_score_based_on_val_acc):
     if best_val_acc != []:
         if val_acc > best_val_acc[-1]:
             best_naswt_score_based_on_val_acc.append(naswt_score)
@@ -94,49 +98,49 @@ def save_performance(folder_name, exp_repeat_index, start_time, end_time, best_v
                      best_naswt_score_based_on_val_acc, best_test_acc, best_naswt_score,
                      best_val_acc_based_on_naswt_score, best_test_acc_based_on_naswt_score, train_times,
                      naswt_calc_times, total_train_time, total_naswt_calc_time):
-    with open(folder_name + '/best_val_acc' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
+    with open(os.path.join(folder_name, 'best_val_acc' + str(exp_repeat_index + 1) + '.txt')) as f:
         for element in best_val_acc:
             f.write(str(element) + '\n')
 
-    with open(folder_name + '/best_test_acc_based_on_val_acc' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
+    with open(os.path.join(folder_name, 'best_test_acc_based_on_val_acc' + str(exp_repeat_index + 1) + '.txt')) as f:
         for element in best_test_acc_based_on_val_acc:
             f.write(str(element) + '\n')
 
-    with open(folder_name + '/best_naswt_score_based_on_val_acc' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
+    with open(os.path.join(folder_name, 'best_naswt_score_based_on_val_acc' + str(exp_repeat_index + 1) + '.txt')) as f:
         for element in best_naswt_score_based_on_val_acc:
             f.write(str(element) + '\n')
 
-    with open(folder_name + '/best_test_acc' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
+    with open(os.path.join(folder_name, 'best_test_acc' + str(exp_repeat_index + 1) + '.txt')) as f:
         for element in best_test_acc:
             f.write(str(element) + '\n')
 
-    with open(folder_name + '/best_naswt_score' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
+    with open(os.path.join(folder_name, 'best_naswt_score' + str(exp_repeat_index + 1) + '.txt')) as f:
         for element in best_naswt_score:
             f.write(str(element) + '\n')
 
-    with open(folder_name + '/best_val_acc_based_on_naswt_score' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
+    with open(os.path.join(folder_name, 'best_val_acc_based_on_naswt_score' + str(exp_repeat_index + 1) + '.txt')) as f:
         for element in best_val_acc_based_on_naswt_score:
             f.write(str(element) + '\n')
 
-    with open(folder_name + '/best_test_score_based_on_naswt_score' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
+    with open(os.path.join(folder_name, 'best_test_score_based_on_naswt_score' + str(exp_repeat_index + 1) + '.txt')) as f:
         for element in best_test_acc_based_on_naswt_score:
             f.write(str(element) + '\n')
 
-    with open(folder_name + '/train_times' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
+    with open(os.path.join(folder_name, 'train_times' + str(exp_repeat_index + 1) + '.txt')) as f:
         for element in train_times:
             f.write(str(element) + '\n')
 
-    with open(folder_name + '/total_train_time' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
+    with open(os.path.join(folder_name, 'total_train_time' + str(exp_repeat_index + 1) + '.txt')) as f:
         for element in total_train_time:
             f.write(str(element) + '\n')
 
-    with open(folder_name + '/naswt_calc_times' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
+    with open(os.path.join(folder_name, 'naswt_calc_times' + str(exp_repeat_index + 1) + '.txt')) as f:
         for element in naswt_calc_times:
             f.write(str(element) + '\n')
 
-    with open(folder_name + '/total_naswt_calc_time' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
+    with open(os.path.join(folder_name, 'total_naswt_calc_time' + str(exp_repeat_index + 1) + '.txt')) as f:
         for element in total_naswt_calc_time:
             f.write(str(element) + '\n')
 
-    with open(folder_name + '/execution_time' + str(exp_repeat_index + 1) + '.txt', 'w') as f:
+    with open(os.path.join(folder_name, 'execution_time' + str(exp_repeat_index + 1) + '.txt')) as f:
         f.write(str(end_time - start_time) + '\n')  # in seconds
