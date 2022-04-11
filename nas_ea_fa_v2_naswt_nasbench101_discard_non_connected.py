@@ -12,6 +12,8 @@ from nasbench101_utils_dnc import MAX_CONNECTIONS
 from nasbench101_utils_dnc import randomly_sample_architecture, create_nord_architecture, \
     get_all_isomorphic_sequences, get_min_distance, get_model_sequences, tournament_selection, bitwise_mutation
 
+from save_individual import save_individual_101_dnc, save_individual_fitness_approximation
+
 import argparse
 
 parser = argparse.ArgumentParser(description='NASBench')
@@ -174,40 +176,7 @@ def NAS_EA_FA_V2_naswt():
                 ind_num = 0
                 for ind in new_population:
                     ind_num += 1
-                    f.write('architecture' + str(ind_num) + '\n')
-                    f.write('layers: ')
-                    for op in ind.layers:
-                        f.write(op + ' ')
-                    f.write('\n')
-                    f.write('simplified layers: ')
-                    for op in ind.simplified_layers:
-                        f.write(op + ' ')
-                    f.write('\n')
-                    f.write('connections: ')
-                    for conn in ind.connections:
-                        f.write(str(int(conn)) + ' ')
-                    f.write('\n')
-                    f.write('simplified connection matrix: ')
-                    f.write('\n')
-                    for row in ind.simplified_connection_matrix:
-                        for conn in row:
-                            f.write(str(int(conn)) + ' ')
-                        f.write('\n')
-                    f.write('fitness (naswt score): ')
-                    f.write(str(ind.fitness))
-                    f.write('\n')
-                    f.write('validation accuracy: ')
-                    f.write(str(ind.val_acc))
-                    f.write('\n')
-                    f.write('test accuracy: ')
-                    f.write(str(ind.test_acc))
-                    f.write('\n')
-                    f.write('train time: ')
-                    f.write(str(ind.train_time))
-                    f.write('\n')
-                    f.write('naswt calculation time: ')
-                    f.write(str(ind.naswt_calc_time))
-                    f.write('\n')
+                    save_individual_101_dnc(f, ind, ind_num)
 
             num_topK = len(new_population)
 
@@ -309,40 +278,7 @@ def NAS_EA_FA_V2_naswt():
                 for index in range(num_topK, len(new_population)):
                     ind = new_population[index]
                     ind_num += 1
-                    f.write('architecture' + str(ind_num) + '\n')
-                    f.write('layers: ')
-                    for op in ind.layers:
-                        f.write(op + ' ')
-                    f.write('\n')
-                    f.write('simplified layers: ')
-                    for op in ind.simplified_layers:
-                        f.write(op + ' ')
-                    f.write('\n')
-                    f.write('connections: ')
-                    for conn in ind.connections:
-                        f.write(str(int(conn)) + ' ')
-                    f.write('\n')
-                    f.write('simplified connection matrix: ')
-                    f.write('\n')
-                    for row in ind.simplified_connection_matrix:
-                        for conn in row:
-                            f.write(str(int(conn)) + ' ')
-                        f.write('\n')
-                    f.write('fitness (naswt score): ')
-                    f.write(str(ind.fitness))
-                    f.write('\n')
-                    f.write('validation accuracy: ')
-                    f.write(str(ind.val_acc))
-                    f.write('\n')
-                    f.write('test accuracy: ')
-                    f.write(str(ind.test_acc))
-                    f.write('\n')
-                    f.write('train time: ')
-                    f.write(str(ind.train_time))
-                    f.write('\n')
-                    f.write('naswt calculation time: ')
-                    f.write(str(ind.naswt_calc_time))
-                    f.write('\n')
+                    save_individual_101_dnc(f, ind, ind_num)
 
             # update population
             if len(new_population) != 0:
@@ -383,28 +319,7 @@ def NAS_EA_FA_V2_naswt():
                     ind_num = 0
                     for ind in population:
                         ind_num += 1
-                        f.write('architecture' + str(ind_num) + '\n')
-                        f.write('layers: ')
-                        for op in ind.layers:
-                            f.write(op + ' ')
-                        f.write('\n')
-                        f.write('simplified layers: ')
-                        for op in ind.simplified_layers:
-                            f.write(op + ' ')
-                        f.write('\n')
-                        f.write('connections: ')
-                        for conn in ind.connections:
-                            f.write(str(int(conn)) + ' ')
-                        f.write('\n')
-                        f.write('simplified connection matrix: ')
-                        f.write('\n')
-                        for row in ind.simplified_connection_matrix:
-                            for conn in row:
-                                f.write(str(int(conn)) + ' ')
-                            f.write('\n')
-                        f.write('fitness (approximate naswt score): ')
-                        f.write(str(ind.fitness))
-                        f.write('\n')
+                        save_individual_fitness_approximation(f, ind, ind_num, 'naswt_score')
 
             # validation set for next iteration's xgboost model
             x_val = x_train
