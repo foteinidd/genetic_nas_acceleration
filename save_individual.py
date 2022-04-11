@@ -1,4 +1,4 @@
-def save_individual_101_dnc(f, ind, ind_num):
+def save_individual_101_dnc(f, ind, ind_num, fitness):
     f.write('architecture' + str(ind_num) + '\n')
     f.write('layers: ')
     for op in ind.layers:
@@ -18,12 +18,17 @@ def save_individual_101_dnc(f, ind, ind_num):
         for conn in row:
             f.write(str(int(conn)) + ' ')
         f.write('\n')
-    f.write('fitness (naswt score): ')
-    f.write(str(ind.fitness))
-    f.write('\n')
-    f.write('validation accuracy: ')
-    f.write(str(ind.val_acc))
-    f.write('\n')
+    if fitness == 'naswt':
+        f.write('fitness (naswt score): ')
+        f.write(str(ind.fitness))
+        f.write('\n')
+        f.write('validation accuracy: ')
+        f.write(str(ind.val_acc))
+        f.write('\n')
+    else:
+        f.write('fitness (validation accuracy): ')
+        f.write(str(ind.fitness))
+        f.write('\n')
     f.write('test accuracy: ')
     f.write(str(ind.test_acc))
     f.write('\n')
@@ -35,7 +40,7 @@ def save_individual_101_dnc(f, ind, ind_num):
     f.write('\n')
 
 
-def save_individual_201_dnc(f, ind, ind_num):
+def save_individual_201_dnc(f, ind, ind_num, fitness):
     f.write('architecture' + str(ind_num) + '\n')
     f.write('layers: ')
     for op in ind.layers:
@@ -55,12 +60,17 @@ def save_individual_201_dnc(f, ind, ind_num):
         for conn in row:
             f.write(str(int(conn)) + ' ')
         f.write('\n')
-    f.write('fitness (naswt score): ')
-    f.write(str(ind.fitness))
-    f.write('\n')
-    f.write('validation accuracy: ')
-    f.write(str(ind.val_acc))
-    f.write('\n')
+    if fitness == 'naswt':
+        f.write('fitness (naswt score): ')
+        f.write(str(ind.fitness))
+        f.write('\n')
+        f.write('validation accuracy: ')
+        f.write(str(ind.val_acc))
+        f.write('\n')
+    else:
+        f.write('fitness (validation accuracy): ')
+        f.write(str(ind.fitness))
+        f.write('\n')
     f.write('test accuracy: ')
     f.write(str(ind.test_acc))
     f.write('\n')
@@ -87,7 +97,7 @@ def save_individual_201_dnc(f, ind, ind_num):
     f.write('\n')
 
 
-def save_individual_fitness_approximation(f, ind, ind_num, fitness_score):
+def save_individual_fitness_approximation(f, ind, ind_num, fitness):
     f.write('architecture' + str(ind_num) + '\n')
     f.write('layers: ')
     for op in ind.layers:
@@ -107,6 +117,11 @@ def save_individual_fitness_approximation(f, ind, ind_num, fitness_score):
         for conn in row:
             f.write(str(int(conn)) + ' ')
         f.write('\n')
-    f.write('fitness (approximate ' + fitness_score + ')')
-    f.write(str(ind.fitness))
-    f.write('\n')
+    if fitness == 'naswt':
+        f.write('fitness (approximate naswt score)')
+        f.write(str(ind.fitness))
+        f.write('\n')
+    else:
+        f.write('fitness (approximate validation accuracy)')
+        f.write(str(ind.fitness))
+        f.write('\n')
