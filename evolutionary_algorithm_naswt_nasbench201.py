@@ -49,8 +49,8 @@ def evolutionary_algorithm_naswt():
         total_naswt_calc_time = []
 
         best_naswt_score = []
-        best_val_acc_based_on_fitness = []
-        best_test_acc_based_on_fitness = []
+        best_val_acc_based_on_naswt_score = []
+        best_test_acc_based_on_naswt_score = []
 
         best_test_acc = []
 
@@ -80,6 +80,7 @@ def evolutionary_algorithm_naswt():
                     if not invalid_nas201:
                         total_population.append(architecture)
                         is_valid_architecture = True
+
         population = copy.deepcopy(total_population)
 
         # evolutionary algorithm
@@ -130,12 +131,18 @@ def evolutionary_algorithm_naswt():
                 new_population.append(new_individual)
 
                 best_val_acc, best_test_acc_based_on_val_acc, best_naswt_score_based_on_val_acc, best_test_acc, \
-                best_naswt_score, best_val_acc_based_on_fitness, best_test_acc_based_on_fitness, train_times, \
+                best_naswt_score, best_val_acc_based_on_naswt_score, best_test_acc_based_on_naswt_score, train_times, \
                 naswt_calc_times, total_train_time, total_naswt_calc_time = \
-                    progress_update(val_acc, test_acc, naswt_score, train_time, naswt_calc_time, best_val_acc,
-                                    best_test_acc_based_on_val_acc, best_naswt_score_based_on_val_acc, best_test_acc,
-                                    best_naswt_score, best_val_acc_based_on_fitness, best_test_acc_based_on_fitness,
-                                    train_times, naswt_calc_times, total_train_time, total_naswt_calc_time)
+                    progress_update(val_acc=val_acc, test_acc=test_acc, train_time=train_time, best_val_acc=best_val_acc,
+                                    best_test_acc_based_on_val_acc=best_test_acc_based_on_val_acc,
+                                    best_test_acc=best_test_acc, train_times=train_times,
+                                    total_train_time=total_train_time, fitness='naswt', naswt_score=naswt_score,
+                                    naswt_calc_time=naswt_calc_time,
+                                    best_naswt_score_based_on_val_acc=best_naswt_score_based_on_val_acc,
+                                    best_naswt_score=best_naswt_score,
+                                    best_val_acc_based_on_naswt_score=best_val_acc_based_on_naswt_score,
+                                    best_test_acc_based_on_naswt_score=best_test_acc_based_on_naswt_score,
+                                    naswt_calc_times=naswt_calc_times, total_naswt_calc_time=total_naswt_calc_time)
 
             population = new_population
 
@@ -152,9 +159,10 @@ def evolutionary_algorithm_naswt():
         end_time = time.time()
 
         save_performance(folder_name, exp_repeat_index, start_time, end_time, best_val_acc,
-                         best_test_acc_based_on_val_acc, best_naswt_score_based_on_val_acc, best_test_acc,
-                         best_naswt_score, best_val_acc_based_on_fitness, best_test_acc_based_on_fitness,
-                         train_times, naswt_calc_times, total_train_time, total_naswt_calc_time)
+                         best_test_acc_based_on_val_acc, best_test_acc, train_times, total_train_time,
+                         'val_acc', best_naswt_score_based_on_val_acc, best_naswt_score,
+                         best_val_acc_based_on_naswt_score, best_test_acc_based_on_naswt_score,
+                         naswt_calc_times, total_naswt_calc_time)
 
 
 if __name__ == '__main__':
