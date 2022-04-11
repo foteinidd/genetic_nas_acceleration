@@ -44,7 +44,8 @@ def genetic_algorithm_naswt_101():
         os.mkdir('results_ga_dnc101_naswt_' + str(args.batch_size))
     for exp_repeat_index in range(EXP_REPEAT_TIMES):
         start_time = time.time()
-        folder_name = 'results_ga_dnc101_naswt_' + str(args.batch_size) + '/results' + str(exp_repeat_index + 1)
+        folder_name = os.path.join('results_ga_dnc101_naswt_' + str(args.batch_size), 'results' +
+                                   str(exp_repeat_index + 1))
         if not os.path.exists(folder_name):
             os.mkdir(folder_name)
 
@@ -124,7 +125,7 @@ def genetic_algorithm_naswt_101():
 
             population = new_population
 
-            with open(folder_name + '/population_epoch' + str(epoch + 1) + '.txt', 'w') as f:
+            with open(os.path.join(folder_name, 'population_epoch' + str(epoch + 1) + '.txt'), 'w') as f:
                 ind_num = 0
                 for ind in population:
                     ind_num += 1

@@ -8,6 +8,9 @@ from params import EXP_REPEAT_TIMES, POPULATION_SIZE, NUM_GEN, T
 from nasbench101_utils_dnc import MAX_CONNECTIONS
 from nasbench101_utils_dnc import randomly_sample_architecture, create_nord_architecture, tournament_selection, bitwise_mutation
 
+from performance_evaluation import progress_update, save_performance
+from save_individual import save_individual_101_dnc
+
 
 def genetic_algorithm_train_101():
     # Instantiate the evaluator
@@ -17,7 +20,7 @@ def genetic_algorithm_train_101():
         os.mkdir('results_ga_dnc101_train')
     for exp_repeat_index in range(EXP_REPEAT_TIMES):
         start_time = time.time()
-        folder_name = 'results_ga_dnc101_train/results' + str(exp_repeat_index + 1)
+        folder_name = os.path.join('results_ga_dnc101_train', 'results' + str(exp_repeat_index + 1))
         if not os.path.exists(folder_name):
             os.mkdir(folder_name)
 
@@ -58,82 +61,30 @@ def genetic_algorithm_train_101():
 
                 new_population.append(new_individual)
 
-                if best_val_acc != []:
-                    if val_acc > best_val_acc[-1]:
-                        best_val_acc.append(val_acc)
-                        best_test_acc.append(test_acc)
-                    else:
-                        best_val_acc.append(best_val_acc[-1])
-                        best_test_acc.append(best_test_acc[-1])
-                else:
-                    best_val_acc.append(val_acc)
-                    best_test_acc.append(test_acc)
-
-                train_times.append(train_time)
-
-                if total_time != []:
-                    total_time.append(total_time[-1] + train_time)
-                else:
-                    total_time.append(train_time)
+                best_val_acc, best_test_acc_based_on_val_acc, best_test_acc, train_times, total_train_time = \
+                    progress_update(val_acc=val_acc, test_acc=test_acc, train_time=train_time,
+                                    best_val_acc=best_val_acc,
+                                    best_test_acc_based_on_val_acc=best_test_acc_based_on_val_acc,
+                                    best_test_acc=best_test_acc, train_times=train_times,
+                                    total_train_time=total_train_time, fitness='val_acc')
 
             population = new_population
 
-            with open(folder_name + '/population_epoch' + str(epoch + 1) + '.txt', 'w') as f:
+            with open(os.path.join(folder_name, 'population_epoch' + str(epoch + 1) + '.txt'), 'w') as f:
                 ind_num = 0
                 for ind in population:
                     ind_num += 1
-                    f.write('architecture' + str(ind_num) + '\n')
-                    f.write('layers: ')
-                    for op in ind.layers:
-                        f.write(op + ' ')
-                    f.write('\n')
-                    f.write('simplified layers: ')
-                    for op in ind.simplified_layers:
-                        f.write(op + ' ')
-                    f.write('\n')
-                    f.write('connections: ')
-                    for conn in ind.connections:
-                        f.write(str(int(conn)) + ' ')
-                    f.write('\n')
-                    f.write('simplified connection matrix: ')
-                    f.write('\n')
-                    for row in ind.simplified_connection_matrix:
-                        for conn in row:
-                            f.write(str(int(conn)) + ' ')
-                        f.write('\n')
-                    f.write('fitness (validation accuracy): ')
-                    f.write(str(ind.fitness))
-                    f.write('\n')
-                    f.write('test accuracy: ')
-                    f.write(str(ind.test_acc))
-                    f.write('\n')
-                    f.write('train time: ')
-                    f.write(str(ind.train_time))
-                    f.write('\n')
+                    save_individual_101_dnc(f, ind, ind_num, 'val_acc')
 
             toc = time.time()
-            print('experiment index:', exp_repeat_index+1, 'time needed for epoch ' + str(epoch+1) + ':', toc - tic, 'sec')
+            print('experiment index:', exp_repeat_index+1, 'time needed for epoch ' + str(epoch+1) + ':', toc - tic,
+                  'sec')
 
         end_time = time.time()
 
-        with open(folder_name + '/best_val_acc' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            for element in best_val_acc:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/best_test_acc' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            for element in best_test_acc:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/train_times' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            for element in train_times:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/total_time' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            for element in total_time:
-                f.write(str(element) + '\n')
-
-        with open(folder_name + '/execution_time' + str(exp_repeat_index+1) + '.txt', 'w') as f:
-            f.write(str(end_time - start_time) + '\n')  # in seconds
+    save_performance(folder_name, exp_repeat_index, start_time, end_time, best_val_acc,
+                     best_test_acc_based_on_val_acc, best_test_acc, train_times, total_train_time,
+                     'val_acc')
 
 
 if __name__ == '__main__':
