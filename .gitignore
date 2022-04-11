@@ -7,6 +7,8 @@ __pycache__/
 
 results_ga_dnc101_naswt_*/
 results_ga_dnc101_train/
+results_ga_dnc201_naswt_*/
+results_ga_dnc201_train/
 results_nas_ea_fa_v2_dnc101_naswt_*/
 results_nas_ea_fa_v2_dnc201_naswt_*/
 results_nas_ea_fa_v2_cio101_train/
