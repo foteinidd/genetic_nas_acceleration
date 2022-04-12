@@ -151,7 +151,7 @@ def save_performance(folder_name, exp_repeat_index, start_time, end_time, best_v
             for element in best_val_acc_based_on_naswt_score:
                 f.write(str(element) + '\n')
 
-        with open(os.path.join(folder_name, 'best_test_score_based_on_naswt_score' + str(exp_repeat_index + 1) + '.txt'), 'w') as f:
+        with open(os.path.join(folder_name, 'best_test_acc_based_on_naswt_score' + str(exp_repeat_index + 1) + '.txt'), 'w') as f:
             for element in best_test_acc_based_on_naswt_score:
                 f.write(str(element) + '\n')
 
