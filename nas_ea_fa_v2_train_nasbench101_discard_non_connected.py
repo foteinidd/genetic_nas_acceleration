@@ -15,7 +15,7 @@ from performance_evaluation import progress_update, save_performance
 from save_individual import save_individual_101_dnc, save_individual_fitness_approximation
 
 
-def NAS_EA_FA_V2_naswt_101():
+def NAS_EA_FA_V2_train_101():
     # Instantiate the evaluator
     evaluator = BenchmarkEvaluator()
 
@@ -231,4 +231,4 @@ def NAS_EA_FA_V2_naswt_101():
 
 
 if __name__ == '__main__':
-    NAS_EA_FA_V2_naswt_101()
+    NAS_EA_FA_V2_train_101()

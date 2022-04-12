@@ -111,7 +111,7 @@ def NAS_EA_FA_V2_naswt_101():
                 K_matrix, naswt_score, naswt_calc_time = naswt_evaluator.net_evaluate(net=net,
                                                                                       batch_size=args.batch_size,
                                                                                       dataset=args.dataset)
-                print('topK', 'num_arch:', num_arch, 'naswt_calc_time:', calc_time, 'sec')
+                print('topK', 'num_arch:', num_arch, 'naswt_calc_time:', naswt_calc_time, 'sec')
 
                 architecture.fitness = naswt_score
                 architecture.val_acc = val_acc
