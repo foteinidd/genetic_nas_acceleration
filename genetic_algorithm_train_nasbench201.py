@@ -26,7 +26,7 @@ def genetic_algorithm_train_201():
         best_val_acc = []
         best_test_acc = []
         train_times = []
-        total_time = []
+        total_train_time = []
 
         # Randomly sample POPULATION_SIZE architectures with an initial fitness of 0
         total_population = []
