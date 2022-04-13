@@ -24,9 +24,11 @@ def genetic_algorithm_train_201():
             os.mkdir(folder_name)
 
         best_val_acc = []
-        best_test_acc = []
+        best_test_acc_based_on_val_acc = []
         train_times = []
         total_train_time = []
+
+        best_test_acc = []
 
         # Randomly sample POPULATION_SIZE architectures with an initial fitness of 0
         total_population = []

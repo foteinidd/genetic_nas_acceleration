@@ -3,7 +3,7 @@ import os
 from typing import List
 
 
-def current_best_val_acc(val_acc, test_acc, naswt_score, best_val_acc, best_test_acc_based_on_val_acc,
+def current_best_val_acc(val_acc, test_acc, best_val_acc, best_test_acc_based_on_val_acc, naswt_score=None,
                          best_naswt_score_based_on_val_acc=None, fitness='val_acc'):
     if best_val_acc != []:
         if val_acc > best_val_acc[-1]:
@@ -85,18 +85,28 @@ def progress_update(val_acc: float, test_acc: float, train_time: float, best_val
                     naswt_calc_times=None, total_naswt_calc_time=None):
 
     # validation accuracy
-    best_val_acc, best_test_acc_based_on_val_acc, best_naswt_score_based_on_val_acc = \
-        current_best_val_acc(val_acc, test_acc, naswt_score, best_val_acc, best_test_acc_based_on_val_acc,
-                             best_naswt_score_based_on_val_acc, fitness)
+    if fitness == 'naswt':
+        best_val_acc, best_test_acc_based_on_val_acc, best_naswt_score_based_on_val_acc = \
+            current_best_val_acc(val_acc=val_acc, test_acc=test_acc, best_val_acc=best_val_acc,
+                                 best_test_acc_based_on_val_acc=best_test_acc_based_on_val_acc, naswt_score=naswt_score,
+                                 best_naswt_score_based_on_val_acc=best_naswt_score_based_on_val_acc, fitness=fitness)
+    else:
+        best_val_acc, best_test_acc_based_on_val_acc = current_best_val_acc(val_acc=val_acc, test_acc=test_acc,
+                                                                            best_val_acc=best_val_acc,
+                                                                            best_test_acc_based_on_val_acc=best_test_acc_based_on_val_acc,
+                                                                            fitness=fitness)
 
+    # test accuracy
     best_test_acc = current_best_test_acc(test_acc, best_test_acc)
 
+    # training time
     train_times.append(train_time)
-    naswt_calc_times.append(naswt_calc_time)
 
+    # total training time
     total_train_time = current_total_train_time(train_time, total_train_time)
 
     if fitness == 'naswt':
+        naswt_calc_times.append(naswt_calc_time)
         best_naswt_score, best_val_acc_based_on_naswt_score, best_test_acc_based_on_naswt_score = \
             current_best_naswt_score(naswt_score, val_acc, test_acc, best_naswt_score,
                                      best_val_acc_based_on_naswt_score, best_test_acc_based_on_naswt_score)
