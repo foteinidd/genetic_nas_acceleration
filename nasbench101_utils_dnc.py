@@ -115,27 +115,6 @@ def get_connections_from_matrix(connection_matrix):
     return connection_matrix[np.triu_indices(connection_matrix.shape[0], k=1)]
 
 
-# def form_necessary_connections(connection_matrix, connections, layers):
-#   new_connection_made = False
-#   for i, _ in enumerate(layers):
-#     if 0 < i < 6 and not np.any(connection_matrix[i, :]):
-#       connection_matrix[i, NUM_LAYERS-1] = 1
-#       new_connection_made = True
-#     elif i == 0 and not np.any(connection_matrix[i, :]):
-#       connection_matrix[i, np.random.randint(1, NUM_LAYERS)] = 1
-#       new_connection_made = True
-
-#     if 0 < i < 6 and not np.any(connection_matrix[:, i]):
-#       connection_matrix[0, i] = 1
-#       new_connection_made = True
-#     elif i == 6 and not np.any(connection_matrix[:, i]):
-#       connection_matrix[np.random.randint(0, NUM_LAYERS-1), i] = 1
-
-#     if new_connection_made:
-#       connections = get_connections_from_matrix(connection_matrix)
-
-#   return connections
-
 def randomly_sample_architecture():
     # initialise random architecture
     layers = [INPUT]
@@ -145,10 +124,6 @@ def randomly_sample_architecture():
 
     # form random connections between layers until connections are valid (01 sequence)
     connections = np.array([np.random.randint(2) for _ in range(LENGTH_CONN_SEQ)], dtype=int)
-    connection_matrix = build_connection_matrix(connections)
-
-    # # form necessary connections (in case some layers have no input or no output connections)
-    # connections = form_necessary_connections(connection_matrix, connections, layers)
 
     # initial fitness is 0
     fitness = 0
