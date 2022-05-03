@@ -46,8 +46,8 @@ class ModelHandler(object):
         self.loss_fn = loss_fn
         self.optimizer = optimizer
 
-        # self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.device = 'cpu'
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        # self.device = 'cpu'
         self.model.to(self.device)
 
         self.train_loader = None
