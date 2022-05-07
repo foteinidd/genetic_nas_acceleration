@@ -7,11 +7,13 @@ from dgl_dataset import NASBench101CellDataset
 
 from dgl_model import GCN
 
+import os
 import numpy as np
+import time
 from matplotlib import pyplot as plt
 
 
-def data_preparation(num_arch, train_percentage, batch_size):
+def data_preparation(num_arch, train_percentage, train_batch_size, val_batch_size):
     # set seed
     torch.manual_seed(13)
 
@@ -23,17 +25,17 @@ def data_preparation(num_arch, train_percentage, batch_size):
     train_sampler = SubsetRandomSampler(torch.arange(num_train))
     val_sampler = SubsetRandomSampler(torch.arange(num_train, num_examples))
 
-    train_dataloader = GraphDataLoader(dataset, sampler=train_sampler, batch_size=batch_size, drop_last=False)
-    val_dataloader = GraphDataLoader(dataset, sampler=val_sampler, batch_size=batch_size, drop_last=False)
+    train_data_loader = GraphDataLoader(dataset, sampler=train_sampler, batch_size=train_batch_size, drop_last=False)
+    val_data_loader = GraphDataLoader(dataset, sampler=val_sampler, batch_size=val_batch_size, drop_last=False)
 
-    return dataset, train_dataloader, val_dataloader
+    return dataset, train_data_loader, val_data_loader
 
 
-def model_configuration(dataset, learning_rate):
+def model_configuration(dataset, num_filters, learning_rate):
     # set seed
     torch.manual_seed(42)
 
-    model = GCN(dataset.dim_nfeats, 50)
+    model = GCN(dataset.dim_nfeats, num_filters)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     loss_fn = torch.nn.MSELoss(reduction='mean')
 
@@ -47,7 +49,6 @@ class ModelHandler(object):
         self.optimizer = optimizer
 
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        # self.device = 'cpu'
         self.model.to(self.device)
 
         self.train_loader = None
@@ -81,6 +82,7 @@ class ModelHandler(object):
             yhat = self.model(x)
 
             # compute loss
+            # loss = self.loss_fn(yhat, y)
             loss = self.loss_fn(yhat, y.view(-1, 1))
 
             # compute gradients
@@ -104,13 +106,14 @@ class ModelHandler(object):
             yhat = self.model(x)
 
             # compute loss
+            # loss = self.loss_fn(yhat, y)
             loss = self.loss_fn(yhat, y.view(-1, 1))
 
             return loss.item()
 
         return perform_val_step_fn
 
-    def _mini_batch(self, validation=False):
+    def _process_mini_batches(self, validation=False):
         if validation:
             data_loader = self.val_loader
             step_fn = self.val_step_fn
@@ -123,6 +126,7 @@ class ModelHandler(object):
 
         mini_batch_losses = []
         for x_batch, y_batch in data_loader:
+            # print('x_batch', x_batch)
             x_batch = x_batch.to(self.device)
             y_batch = y_batch.to(self.device)
 
@@ -141,20 +145,27 @@ class ModelHandler(object):
     def train(self, n_epochs, seed=42):
         self.set_seed(seed)
 
-        for epoch in range(n_epochs):
+        os.makedirs('dgl_model/', exist_ok=True)
+
+        for epoch in range(n_epochs + 1):
+            tic = time.time()
             self.total_epochs += 1
 
             # train using minibatches
-            loss = self._mini_batch(validation=False)
+            loss = self._process_mini_batches(validation=False)
             self.losses.append(loss)
 
             # validation
             with torch.no_grad():  # no gradients in validation
                 # evaluate using minibatches
-                val_loss = self._mini_batch(validation=True)
+                val_loss = self._process_mini_batches(validation=True)
                 self.val_losses.append(val_loss)
 
-            print('epoch:', epoch, 'training loss:', loss, 'validation loss:', val_loss)
+            print('epoch:', epoch, 'training loss:', loss, 'validation loss:', val_loss,
+                  'time needed:', time.time()-tic, 'sec')
+
+            if epoch % 10 == 0:
+                self.save_checkpoint('dgl_model/dgl_model_checkpoint_epoch' + str(epoch) + '.pth')
 
     def save_checkpoint(self, filename):
         # create checkpoint dictionary
@@ -196,7 +207,7 @@ class ModelHandler(object):
         plt.plot(self.losses, label='Training Loss', c='b')
         plt.plot(self.val_losses, label='Validation Loss', c='r')
         plt.yscale('log')
-        plt.xlabel('Epochs')
+        plt.xlabel('Epoch')
         plt.ylabel('Loss')
         plt.legend()
         plt.tight_layout()
