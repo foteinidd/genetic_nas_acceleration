@@ -120,10 +120,10 @@ def save_individual_fitness_approximation(f, ind, ind_num, fitness):
             f.write(str(int(conn)) + ' ')
         f.write('\n')
     if fitness == 'naswt':
-        f.write('fitness (approximate naswt score)')
+        f.write('fitness (approximate naswt score): ')
         f.write(str(ind.fitness))
         f.write('\n')
     else:
-        f.write('fitness (approximate validation accuracy)')
+        f.write('fitness (approximate validation accuracy): ')
         f.write(str(ind.fitness))
         f.write('\n')
