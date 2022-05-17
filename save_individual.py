@@ -34,8 +34,8 @@ def save_individual_101_dnc(f, ind, ind_num, fitness):
     f.write('\n')
     f.write('train time: ')
     f.write(str(ind.train_time))
+    f.write('\n')
     if fitness == 'naswt':
-        f.write('\n')
         f.write('naswt calculation time: ')
         f.write(str(ind.naswt_calc_time))
         f.write('\n')
