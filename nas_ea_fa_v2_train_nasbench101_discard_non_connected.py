@@ -89,7 +89,7 @@ def NAS_EA_FA_V2_train_101():
                 for _ in range(len(isomorphic_sequences)):
                     y_train.append(val_acc)
 
-                best_val_acc, best_test_acc_based_on_val_acc, best_test_acc, train_times = \
+                best_val_acc, best_test_acc_based_on_val_acc, best_test_acc, train_times, total_train_time = \
                     progress_update(val_acc=val_acc, test_acc=test_acc, train_time=train_time,
                                     best_val_acc=best_val_acc,
                                     best_test_acc_based_on_val_acc=best_test_acc_based_on_val_acc,
@@ -156,7 +156,7 @@ def NAS_EA_FA_V2_train_101():
                 for _ in range(len(isomorphic_sequences)):
                     y_train.append(val_acc)
 
-                best_val_acc, best_test_acc_based_on_val_acc, best_test_acc, train_times = \
+                best_val_acc, best_test_acc_based_on_val_acc, best_test_acc, train_times, total_train_time = \
                     progress_update(val_acc=val_acc, test_acc=test_acc, train_time=train_time,
                                     best_val_acc=best_val_acc,
                                     best_test_acc_based_on_val_acc=best_test_acc_based_on_val_acc,
