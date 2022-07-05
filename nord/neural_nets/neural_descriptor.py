@@ -6,6 +6,8 @@ Created on Mon Aug  6 18:54:35 2018
          ge.kyriakides@gmail.com
 """
 import networkx as nx
+import numpy as np
+
 
 DEFAULT_SUFFIX = 'Layer'
 
@@ -140,7 +142,7 @@ class NeuralDescriptor(object):
         return str({'Layers': repr(self.layers), 'Connections': repr(self.connections),
                     'First_Layer': self.first_layer, 'Last_Layer': self.last_layer})
 
-    def to_networkx(self):
+    def to_networkx(self, benchmark_dataset=None):
         """
         Return a networkx graph representation of
         this descriptor
@@ -150,11 +152,27 @@ class NeuralDescriptor(object):
         G : MultiDiGraph
         """
 
+        if benchmark_dataset == 'nasbench101':
+            labels = {'input': np.array([1, 0, 0, 0, 0]),
+                      'conv1x1-bn-relu': np.array([0, 1, 0, 0, 0]),
+                      'conv3x3-bn-relu': np.array([0, 0, 1, 0, 0]),
+                      'maxpool3x3': np.array([0, 0, 0, 1, 0]),
+                      'output': np.array([0, 0, 0, 0, 1])}
+        elif benchmark_dataset == 'natsbenchtss':
+            labels = {'input': np.array([1, 0, 0, 0, 0, 0]),
+                      'nor_conv_1x1': np.array([0, 1, 0, 0, 0, 0]),
+                      'nor_conv_3x3': np.array([0, 0, 1, 0, 0, 0]),
+                      'avg_pool_3x3': np.array([0, 0, 0, 1, 0, 0]),
+                      'skip_connect': np.array([0, 0, 0, 0, 1, 0]),
+                      'output': np.array([0, 0, 0, 0, 0, 1])}
+
         G = nx.MultiDiGraph()
         for start in self.connections:
             ends = self.connections[start]
             for end in ends:
                 G.add_edge(start, end)
+            # G.nodes[start]['layer'] = self.layers[start][0]
+            G.nodes[start]['layer'] = labels[self.layers[start][0]]
 
         return G
 
