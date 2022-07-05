@@ -1,4 +1,4 @@
-name: nas_msc_thesis
+name: genetic_nas_acceleration
 channels:
   - defaults
   - conda-forge
