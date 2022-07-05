@@ -7,12 +7,10 @@ import traceback
 
 
 NUM_LAYERS = 8  # including INPUT and OUTPUT (nasbench-201 supports architectures with up to 8 layers)
-NUM_OPS = 4  # nasbench-101 supports four types of operations (CONV1X1, CONV3X3, AVGPOOL3X3, SKIPCONNECT)
+NUM_OPS = 4  # nasbench-201 supports four types of operations (CONV1X1, CONV3X3, AVGPOOL3X3, SKIPCONNECT)
 LENGTH_CONN_SEQ = 0
 for i in range(NUM_LAYERS - 1):
     LENGTH_CONN_SEQ += i + 1
-
-# MAX_CONNECTIONS = 9  # nasbench-101 requirement
 
 # ops
 INPUT = 'input'
@@ -117,44 +115,6 @@ def create_nord_architecture(architecture):
     return d
 
 
-# def get_node_encoding(layers):
-#   node_encoding = []
-#   for i in range(1, NUM_LAYERS - 1):
-#     node_encoding.append(available_ops_onehot[layers[i]])
-#   return np.asarray(node_encoding)
-
-# # node encoding + connections
-# def get_sequence(node_encoding, connections):
-#   return np.concatenate((node_encoding, connections))
-
-# def get_sequences_distance(s1, s2):
-#   dist = 0
-#   for i in range(0, 3*(NUM_LAYERS-2), 3):
-#     # print(s1[i:i+3], s2[i:i+3])
-#     if np.any(s1[i:i+3] != s2[i:i+3]):
-#       dist += 1
-
-#   for i in range(3*(NUM_LAYERS-2), len(s1)):
-#     if s1[i] != s2[i]:
-#       dist += 1
-
-#   return dist
-
-# def get_sequences_distance(s1, s2):
-#   dist = 0
-#   for bit1, bit2 in zip(s1, s2):
-#     if bit1 != bit2:
-#       dist += 1
-#   return dist
-
-# def get_min_distance(x_train, s):
-#   min_d = 100000
-#   for x_seq in x_train:
-#     min_d = min(min_d, get_sequences_distance(x_seq, s))
-
-#   return min_d
-
-# from official implementation
 def get_sequences(ops, matrix) -> list:
     rst = []
     v_num = len(ops)
@@ -174,12 +134,10 @@ def get_sequences(ops, matrix) -> list:
     return rst
 
 
-# from official implementation
 def get_model_sequences(individual: Architecture) -> list:
     return get_sequences(individual.layers, individual.connection_matrix)
 
 
-# from official implementation
 def get_sequence_distance(s1, s2) -> int:
     rst = 0
     for t1, t2 in zip(s1, s2):
@@ -188,7 +146,6 @@ def get_sequence_distance(s1, s2) -> int:
     return rst
 
 
-# from official implementation
 def get_min_distance(x_train, s):
     min_d = 100000
     for temp_s in x_train:
@@ -257,9 +214,7 @@ def get_all_isomorphic_sequences(architecture):
         pmatrix, plabel = permute_graph(connection_matrix, label, full_perm)
         pmatrix = pmatrix + 0
         ops = _label2ops(plabel)
-        # if is_upper_triangular(pmatrix) and sum(get_connections_from_matrix(pmatrix)) <= MAX_CONNECTIONS:
         if is_upper_triangular(pmatrix):
-            # sequences.append(get_sequence(get_node_encoding(ops).flatten(), get_connections_from_matrix(pmatrix)))
             sequences.append(get_sequences(ops, pmatrix))
 
     return sequences
@@ -299,11 +254,6 @@ def bitwise_mutation(individual):
         individual.connections = form_necessary_connections(connection_matrix, individual.connections,
                                                             individual.layers)
 
-        # if sum(individual.connections) <= MAX_CONNECTIONS:
-        #     break
-        # else:
-        #     individual.connections = copy.deepcopy(temp_connection)
-
         d = create_nord_architecture(individual)
 
         # evaluate architecture
@@ -320,7 +270,7 @@ def bitwise_mutation(individual):
             print('Exception found (due to mutation)')
             print(traceback.format_exc())
             print(d)
-            invalid_nas201 = True
+            invalid_architecture = True
 
         if not invalid_architecture:
             break
