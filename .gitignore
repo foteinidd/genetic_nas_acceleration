@@ -2,6 +2,11 @@
 
 data/
 
+dgl_dataset/
+dgl_model/
+dgl_model_train_stats/
+dgl_model_evaluation_stats/
+
 __pycache__/
 *.py[cod]
 
