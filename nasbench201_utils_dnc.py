@@ -11,8 +11,6 @@ LENGTH_CONN_SEQ = 0
 for i in range(NUM_LAYERS - 1):
     LENGTH_CONN_SEQ += i + 1
 
-# MAX_CONNECTIONS = 9  # nasbench-101 requirement
-
 # ops
 INPUT = 'input'
 OUTPUT = 'output'
@@ -121,27 +119,6 @@ def get_connections_from_matrix(connection_matrix):
     return connection_matrix[np.triu_indices(connection_matrix.shape[0], k=1)]
 
 
-# def form_necessary_connections(connection_matrix, connections, layers):
-#   new_connection_made = False
-#   for i, _ in enumerate(layers):
-#     if 0 < i < NUM_LAYERS - 1 and not np.any(connection_matrix[i, :]):
-#       connection_matrix[i, NUM_LAYERS-1] = 1
-#       new_connection_made = True
-#     elif i == 0 and not np.any(connection_matrix[i, :]):
-#       connection_matrix[i, np.random.randint(1, NUM_LAYERS)] = 1
-#       new_connection_made = True
-
-#     if 0 < i < NUM_LAYERS - 1 and not np.any(connection_matrix[:, i]):
-#       connection_matrix[0, i] = 1
-#       new_connection_made = True
-#     elif i == NUM_LAYERS - 1 and not np.any(connection_matrix[:, i]):
-#       connection_matrix[np.random.randint(0, NUM_LAYERS-1), i] = 1
-
-#     if new_connection_made:
-#       connections = get_connections_from_matrix(connection_matrix)
-
-#   return connections
-
 def randomly_sample_architecture():
     # initialise random architecture
     layers = [INPUT]
@@ -151,10 +128,6 @@ def randomly_sample_architecture():
 
     # form random connections between layers until connections are valid (01 sequence)
     connections = np.array([np.random.randint(2) for _ in range(LENGTH_CONN_SEQ)], dtype=int)
-    connection_matrix = build_connection_matrix(connections)
-
-    # # form necessary connections (in case some layers have no input or no output connections)
-    # connections = form_necessary_connections(connection_matrix, connections, layers)
 
     # initial fitness is 0
     fitness = 0
@@ -180,44 +153,6 @@ def create_nord_architecture(architecture):
     return d
 
 
-# def get_node_encoding(layers):
-#   node_encoding = []
-#   for i in range(1, NUM_LAYERS - 1):
-#     node_encoding.append(available_ops_onehot[layers[i]])
-#   return np.asarray(node_encoding)
-
-# # node encoding + connections
-# def get_sequence(node_encoding, connections):
-#   return np.concatenate((node_encoding, connections))
-
-# def get_sequences_distance(s1, s2):
-#   dist = 0
-#   for i in range(0, 3*(NUM_LAYERS-2), 3):
-#     # print(s1[i:i+3], s2[i:i+3])
-#     if np.any(s1[i:i+3] != s2[i:i+3]):
-#       dist += 1
-
-#   for i in range(3*(NUM_LAYERS-2), len(s1)):
-#     if s1[i] != s2[i]:
-#       dist += 1
-
-#   return dist
-
-# def get_sequences_distance(s1, s2):
-#   dist = 0
-#   for bit1, bit2 in zip(s1, s2):
-#     if bit1 != bit2:
-#       dist += 1
-#   return dist
-
-# def get_min_distance(x_train, s):
-#   min_d = 100000
-#   for x_seq in x_train:
-#     min_d = min(min_d, get_sequences_distance(x_seq, s))
-
-#   return min_d
-
-# from official implementation
 def get_sequences(ops, matrix) -> list:
     rst = []
     v_num = len(ops)
@@ -237,12 +172,10 @@ def get_sequences(ops, matrix) -> list:
     return rst
 
 
-# from official implementation
 def get_model_sequences(individual: Architecture) -> list:
     return get_sequences(individual.simplified_layers, individual.simplified_connection_matrix)
 
 
-# from official implementation
 def get_sequence_distance(s1, s2) -> int:
     rst = 0
     for t1, t2 in zip(s1, s2):
@@ -251,7 +184,6 @@ def get_sequence_distance(s1, s2) -> int:
     return rst
 
 
-# from official implementation
 def get_min_distance(x_train, s):
     min_d = 100000
     for temp_s in x_train:
@@ -320,9 +252,7 @@ def get_all_isomorphic_sequences(architecture):
         pmatrix, plabel = permute_graph(connection_matrix, label, full_perm)
         pmatrix = pmatrix + 0
         ops = _label2ops(plabel)
-        # if is_upper_triangular(pmatrix) and sum(get_connections_from_matrix(pmatrix)) <= MAX_CONNECTIONS:
         if is_upper_triangular(pmatrix):
-            # sequences.append(get_sequence(get_node_encoding(ops).flatten(), get_connections_from_matrix(pmatrix)))
             sequences.append(get_sequences(ops, pmatrix))
 
     return sequences
@@ -357,11 +287,6 @@ def bitwise_mutation(individual):
         for i in range(len(individual.connections)):
             if np.random.random() < conn_mutation_rate:
                 individual.connections[i] = 1 - individual.connections[i]
-
-        # if sum(individual.connections) <= MAX_CONNECTIONS:
-        #     break
-        # else:
-        #     individual.connections = copy.deepcopy(temp_connection)
 
         individual.update()
 
