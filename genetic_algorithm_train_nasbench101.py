@@ -84,9 +84,9 @@ def genetic_algorithm_train_101():
 
         end_time = time.time()
 
-    save_performance(folder_name, exp_repeat_index, start_time, end_time, best_val_acc,
-                     best_test_acc_based_on_val_acc, best_test_acc, train_times, total_train_time,
-                     'val_acc')
+        save_performance(folder_name, exp_repeat_index, start_time, end_time, best_val_acc,
+                         best_test_acc_based_on_val_acc, best_test_acc, train_times, total_train_time,
+                         'val_acc')
 
 
 if __name__ == '__main__':
