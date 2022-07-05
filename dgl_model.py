@@ -12,11 +12,7 @@ class GCN(nn.Module):
         self.sage_lstm_h_3 = SAGEConv(in_feats=h_feats//2, out_feats=h_feats//4, aggregator_type='lstm')
         self.sage_lstm_h_4 = SAGEConv(in_feats=h_feats//4, out_feats=h_feats//8, aggregator_type='lstm')
         self.sage_lstm_h_5 = SAGEConv(in_feats=h_feats//8, out_feats=h_feats//16, aggregator_type='lstm')
-
-        # self.gatconv1 = GATv2Conv(in_feats=in_feats, out_feats=h_feats, num_heads=1, allow_zero_in_degree=True)
-        # self.gatconv2 = GATv2Conv(in_feats=h_feats, out_feats=h_feats, num_heads=1, allow_zero_in_degree=True)
         self.pool_1_m = MaxPooling()
-        # self.pool_1_m = SortPooling(k=1)
         self.fc1 = nn.Linear(in_features=h_feats//16, out_features=h_feats//32)
         self.fc2 = nn.Linear(in_features=h_feats//32, out_features=1)
         # self.dropout = nn.Dropout(p=dout_prob)
