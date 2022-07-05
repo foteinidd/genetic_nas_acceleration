@@ -4,20 +4,25 @@ from dgl.dataloading import GraphDataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 
 from dgl_dataset import NASBench101CellDataset
-
 from dgl_model import GCN
 
 import os
 import numpy as np
 import time
 from matplotlib import pyplot as plt
+from sklearn.metrics import mean_absolute_error, mean_squared_error, max_error, r2_score
 
 
-def data_preparation(num_arch, train_percentage, train_batch_size, val_batch_size):
+def data_preparation(train_percentage, train_batch_size, val_batch_size, num_arch, graphs=None, labels=None):
     # set seed
     torch.manual_seed(13)
 
-    dataset = NASBench101CellDataset(num_arch=num_arch, generate_data=False)
+    if graphs == None:
+        # load graphs from default (generated) dataset
+        dataset = NASBench101CellDataset(num_arch=num_arch, generate_data=False, import_data=False)
+    else:
+        dataset = NASBench101CellDataset(num_arch=num_arch, generate_data=False, import_data=True, graphs=graphs,
+                                         labels=labels)
 
     num_examples = len(dataset)
     num_train = int(num_examples * train_percentage)
@@ -31,11 +36,11 @@ def data_preparation(num_arch, train_percentage, train_batch_size, val_batch_siz
     return dataset, train_data_loader, val_data_loader
 
 
-def model_configuration(dataset, num_filters, learning_rate):
+def model_configuration(dataset, num_filters, learning_rate, dropout_probability):
     # set seed
     torch.manual_seed(42)
 
-    model = GCN(dataset.dim_nfeats, num_filters)
+    model = GCN(dataset.dim_nfeats, num_filters, dropout_probability)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     loss_fn = torch.nn.MSELoss(reduction='mean')
 
@@ -142,30 +147,41 @@ class ModelHandler(object):
         torch.manual_seed(seed)
         np.random.seed(seed)
 
-    def train(self, n_epochs, seed=42):
+    def train(self, n_epochs, stats_save_dir, model_name, chkpt_save_dir=None, seed=42):
         self.set_seed(seed)
 
-        os.makedirs('dgl_model/', exist_ok=True)
+        # os.makedirs('nas_ea_fa_v2_dgl_model/experiment' + str(experiment), exist_ok=True)
+        os.makedirs(stats_save_dir, exist_ok=True)
+        # os.makedirs('dgl_model_train_stats', exist_ok=True)
+        with open(os.path.join(stats_save_dir, model_name + '.txt'), 'w') as f:
+            # with open(os.path.join('dgl_model_train_stats', model_name + '.txt'), 'w') as f:
+            for epoch in range(n_epochs + 1):
+                tic = time.time()
+                self.total_epochs += 1
 
-        for epoch in range(n_epochs + 1):
-            tic = time.time()
-            self.total_epochs += 1
+                # train using minibatches
+                loss = self._process_mini_batches(validation=False)
+                self.losses.append(loss)
 
-            # train using minibatches
-            loss = self._process_mini_batches(validation=False)
-            self.losses.append(loss)
+                # validation
+                with torch.no_grad():  # no gradients in validation
+                    # evaluate using minibatches
+                    val_loss = self._process_mini_batches(validation=True)
+                    self.val_losses.append(val_loss)
 
-            # validation
-            with torch.no_grad():  # no gradients in validation
-                # evaluate using minibatches
-                val_loss = self._process_mini_batches(validation=True)
-                self.val_losses.append(val_loss)
+                toc = time.time()
 
-            print('epoch:', epoch, 'training loss:', loss, 'validation loss:', val_loss,
-                  'time needed:', time.time()-tic, 'sec')
+                print('epoch:', epoch, 'training loss:', loss, 'validation loss:', val_loss,
+                      'time needed:', toc - tic, 'sec')
 
-            if epoch % 10 == 0:
-                self.save_checkpoint('dgl_model/dgl_model_checkpoint_epoch' + str(epoch) + '.pth')
+                f.write('epoch: ' + str(epoch) + ' training loss: ' + str(loss) + ' validation loss: ' +
+                        str(val_loss) + ' time needed: ' + str(toc - tic) + ' sec\n')
+
+                # if epoch % 10 == 0:
+                #     self.save_checkpoint(os.path.join('dgl_model', 'dgl_model_checkpoint_epoch' + str(epoch) + '.pth'))
+
+        if chkpt_save_dir is not None:
+            self.save_checkpoint(os.path.join(chkpt_save_dir, model_name + '_checkpoint_epoch' + str(epoch) + '.pth'))
 
     def save_checkpoint(self, filename):
         # create checkpoint dictionary
@@ -202,7 +218,42 @@ class ModelHandler(object):
 
         return yhat.detach().cpu().numpy()
 
-    def plot_losses(self):
+    def evaluate(self, stats_save_dir, model_name):
+        os.makedirs(stats_save_dir, exist_ok=True)
+        # os.makedirs('dgl_model_evaluation_stats', exist_ok=True)
+
+        predictions = []
+        labels = []
+        with torch.no_grad():
+            for x, y in self.val_loader:
+                pred_y = self.predict(x)  # + 0.5
+
+                if len(pred_y) > 1:
+                    predictions.extend(pred_y.squeeze().tolist())
+                    labels.extend(y.tolist())
+                else:
+                    print(pred_y)
+                    print(y)
+                    print(pred_y[0][0])
+                    print(y.tolist()[0])
+                    predictions.append(pred_y[0][0])
+                    labels.append(y.tolist()[0])
+
+        print('MAE:', mean_absolute_error(labels, predictions))
+        print('MSE:', mean_squared_error(labels, predictions))
+        print('RMSE:', mean_squared_error(labels, predictions, squared=False))
+        print('Max error:', max_error(labels, predictions))
+        print('R2:', r2_score(labels, predictions))
+
+        with open(os.path.join(stats_save_dir, model_name + '.txt'), 'w') as f:
+            # with open(os.path.join('dgl_model_evaluation_stats', model_name + '.txt'), 'w') as f:
+            f.write('MAE: ' + str(mean_absolute_error(labels, predictions)) + '\n')
+            f.write('MSE: ' + str(mean_squared_error(labels, predictions)) + '\n')
+            f.write('RMSE: ' + str(mean_squared_error(labels, predictions, squared=False)) + '\n')
+            f.write('Max error: ' + str(max_error(labels, predictions)) + '\n')
+            f.write('R2: ' + str(r2_score(labels, predictions)) + '\n')
+
+    def plot_losses(self, stats_save_dir, model_name):
         fig = plt.figure(figsize=(10, 4))
         plt.plot(self.losses, label='Training Loss', c='b')
         plt.plot(self.val_losses, label='Validation Loss', c='r')
@@ -211,4 +262,7 @@ class ModelHandler(object):
         plt.ylabel('Loss')
         plt.legend()
         plt.tight_layout()
-        return fig
+        plt.savefig(os.path.join(stats_save_dir, model_name))
+        # plt.savefig(os.path.join('dgl_model_train_stats', model_name))
+        plt.close()
+        # return fig
