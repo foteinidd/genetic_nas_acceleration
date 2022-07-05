@@ -4,13 +4,13 @@ import copy
 from nord.neural_nets import NeuralDescriptor
 
 
-NUM_LAYERS = 7  # including INPUT and OUTPUT (nasbench-101 supports architectures with up to 7 layers)
-NUM_OPS = 3  # nasbench-101 supports three types of operations (CONV1X1, CONV3X3, MAXPOOL3X3)
+NUM_LAYERS = 7  # including INPUT and OUTPUT (NAS-Bench-101 supports architectures with up to 7 layers)
+NUM_OPS = 3  # NAS-Bench-101 supports three types of operations (CONV1X1, CONV3X3, MAXPOOL3X3)
 LENGTH_CONN_SEQ = 0
 for i in range(NUM_LAYERS - 1):
     LENGTH_CONN_SEQ += i + 1
 
-MAX_CONNECTIONS = 9  # nasbench-101 requirement
+MAX_CONNECTIONS = 9  # NAS-Bench-101 requirement
 
 # ops
 INPUT = 'input'

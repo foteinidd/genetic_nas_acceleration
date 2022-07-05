@@ -5,8 +5,8 @@ import numpy as np
 import copy
 
 
-NUM_LAYERS = 8  # including INPUT and OUTPUT (nasbench-201 supports architectures with up to 8 layers)
-NUM_OPS = 4  # nasbench-101 supports four types of operations (CONV1X1, CONV3X3, AVGPOOL3X3, SKIPCONNECT)
+NUM_LAYERS = 8  # including INPUT and OUTPUT (NATS-Bench TSS supports architectures with up to 8 layers)
+NUM_OPS = 4  # NATS-Bench TSS supports four types of operations (CONV1X1, CONV3X3, AVGPOOL3X3, SKIPCONNECT)
 LENGTH_CONN_SEQ = 0
 for i in range(NUM_LAYERS - 1):
     LENGTH_CONN_SEQ += i + 1
