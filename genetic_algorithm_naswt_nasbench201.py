@@ -1,8 +1,10 @@
 from nord.neural_nets.natsbench_evaluator import NATSBench_Evaluator
 from nord.neural_nets import NASWT_Evaluator
+
 import os
 import copy
 import time
+import numpy as np
 
 from params import EXP_REPEAT_TIMES, POPULATION_SIZE, NUM_GEN, T
 from nasbench201_utils_dnc import randomly_sample_architecture, create_nord_architecture, tournament_selection, \
@@ -165,4 +167,5 @@ def genetic_algorithm_naswt_201():
 
 
 if __name__ == '__main__':
+    np.random.seed(42)
     genetic_algorithm_naswt_201()

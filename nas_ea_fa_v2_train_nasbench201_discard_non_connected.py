@@ -1,5 +1,6 @@
-import numpy as np
 from nord.neural_nets.natsbench_evaluator import NATSBench_Evaluator
+
+import numpy as np
 import os
 from xgboost import XGBRegressor
 import copy
@@ -95,9 +96,14 @@ def NAS_EA_FA_V2_train_201():
                                                               'time_cost'])
 
                 architecture.fitness = val_acc
-
                 architecture.test_acc = test_acc
                 architecture.train_time = train_time
+
+                architecture.train_loss = train_loss
+                architecture.val_loss = val_loss
+                architecture.test_loss = test_loss
+                architecture.train_acc = train_acc
+                architecture.latency = latency
 
                 if time == 0.0:
                     continue
@@ -169,9 +175,14 @@ def NAS_EA_FA_V2_train_201():
                                                               'time_cost'])
 
                 architecture.fitness = val_acc
-
                 architecture.test_acc = test_acc
                 architecture.train_time = train_time
+
+                architecture.train_loss = train_loss
+                architecture.val_loss = val_loss
+                architecture.test_loss = test_loss
+                architecture.train_acc = train_acc
+                architecture.latency = latency
 
                 if time == 0.0:
                     continue
@@ -264,4 +275,5 @@ def NAS_EA_FA_V2_train_201():
 
 
 if __name__ == '__main__':
+    np.random.seed(42)
     NAS_EA_FA_V2_train_201()

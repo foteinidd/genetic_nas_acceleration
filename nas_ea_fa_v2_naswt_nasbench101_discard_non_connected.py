@@ -1,6 +1,7 @@
-import numpy as np
 from nord.neural_nets import BenchmarkEvaluator, NASWT_Evaluator
 from nas_101 import ModelSpec, Network
+
+import numpy as np
 import os
 from xgboost import XGBRegressor
 import copy
@@ -298,4 +299,5 @@ def NAS_EA_FA_V2_naswt_101():
 
 
 if __name__ == '__main__':
+    np.random.seed(42)
     NAS_EA_FA_V2_naswt_101()

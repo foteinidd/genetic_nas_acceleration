@@ -1,8 +1,10 @@
 from nord.neural_nets import BenchmarkEvaluator, NASWT_Evaluator
 from nas_101 import ModelSpec, Network
+
 import os
 import copy
 import time
+import numpy as np
 
 from params import EXP_REPEAT_TIMES, POPULATION_SIZE, NUM_GEN, T
 from nasbench101_utils_dnc import MAX_CONNECTIONS
@@ -145,4 +147,5 @@ def genetic_algorithm_naswt_101():
 
 
 if __name__ == '__main__':
+    np.random.seed(42)
     genetic_algorithm_naswt_101()

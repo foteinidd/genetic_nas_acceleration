@@ -1,8 +1,9 @@
 from nord.neural_nets.natsbench_evaluator import NATSBench_Evaluator
+
 import os
 import copy
 import time
-
+import numpy as np
 
 from params import EXP_REPEAT_TIMES, POPULATION_SIZE, NUM_GEN, T
 from nasbench201_utils_dnc import randomly_sample_architecture, create_nord_architecture, tournament_selection, bitwise_mutation
@@ -119,4 +120,5 @@ def genetic_algorithm_train_201():
 
 
 if __name__ == '__main__':
+    np.random.seed(42)
     genetic_algorithm_train_201()

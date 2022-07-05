@@ -1,5 +1,6 @@
-import numpy as np
 from nord.neural_nets import BenchmarkEvaluator
+
+import numpy as np
 import os
 from xgboost import XGBRegressor
 import copy
@@ -231,4 +232,5 @@ def NAS_EA_FA_V2_train_101():
 
 
 if __name__ == '__main__':
+    np.random.seed(42)
     NAS_EA_FA_V2_train_101()

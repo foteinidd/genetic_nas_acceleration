@@ -1,7 +1,9 @@
 from nord.neural_nets import BenchmarkEvaluator
+
 import os
 import copy
 import time
+import numpy as np
 
 
 from params import EXP_REPEAT_TIMES, POPULATION_SIZE, NUM_GEN, T
@@ -90,4 +92,5 @@ def genetic_algorithm_train_101():
 
 
 if __name__ == '__main__':
+    np.random.seed(42)
     genetic_algorithm_train_101()
