@@ -1,3 +1,3 @@
 # genetic_nas_acceleration
 
-This repository contains the code that accompanies my master's thesis titled "Evaluating Acceleration Techniques for Candidate Evaluation in Genetic Neural Architecture Search", which was conducted within the MSc in Artificial Intelligence and Data Analytics at the University of Macedonia. 
+This repository contains the code that accompanies my master's thesis titled ["Evaluating Acceleration Techniques for Candidate Evaluation in Genetic Neural Architecture Search"](https://dspace.lib.uom.gr/handle/2159/27220), which was conducted within the [MSc in Artificial Intelligence and Data Analytics](https://www.uom.gr/en/aida) at the [University of Macedonia](https://www.uom.gr/en). 
