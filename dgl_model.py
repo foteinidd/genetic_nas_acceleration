@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
-from dgl.nn import SAGEConv, MaxPooling, SortPooling, GATv2Conv, GroupRevRes
+from dgl.nn import SAGEConv, MaxPooling
 
 
 class GCN(nn.Module):
